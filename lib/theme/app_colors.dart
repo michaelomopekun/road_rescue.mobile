@@ -1,0 +1,27 @@
+import 'package:flutter/material.dart';
+
+class AppColors {
+  // Brand
+  static const primary = Color(0xFF1A434E);
+  static const secondary = Color(0xFF93C5FD);
+
+  // Accent / States
+  static const success = Color(0xFF22C55E);
+  static const warning = Color(0xFFF59E0B);
+  static const error = Color(0xFFEF4444);
+
+  // Backgrounds
+  static const background = Color(0xFFFFFFFF);
+  static const surface = Color(0xFFF9FAFB);
+
+  // Text
+  static const textPrimary = Color(0xFF0F172A);
+  static const textSecondary = Color(0xFF475569);
+
+  // Borders
+  static const border = Color(0xFFE5E7EB);
+
+  // Gradient
+  static const gradientTop = Color(0xFF1A4D4F);
+  static const gradientBottom = Color(0xFF93C5FD);
+}
