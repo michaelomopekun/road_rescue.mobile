@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
+import 'features/onboarding/onboarding_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+
+  runApp(MyApp(onboardingComplete: onboardingComplete));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool onboardingComplete;
+
+  const MyApp({super.key, required this.onboardingComplete});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      // home: const OnboardingScreen(),
+      home: onboardingComplete
+          ? const Scaffold(body: Center(child: Text('Login + Signup')))
+          : const OnboardingScreen(),
     );
   }
 }
