@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
@@ -14,35 +16,35 @@ class GradientBackground extends StatelessWidget {
           // Base White
           Container(color: Colors.white),
 
-          // Top Left Glow
+          // Top-left blurred circle
           Positioned(
             top: 0,
-            left: -77,
-            child: Container(
-              width: 311,
-              height: 324,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [AppColors.gradientTop, Colors.transparent],
-                  stops: [0.0, 1.0],
+            left: -47,
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
+              child: Container(
+                width: 311,
+                height: 324,
+                decoration: BoxDecoration(
+                  color: AppColors.gradientTop,
+                  shape: BoxShape.circle,
                 ),
               ),
             ),
           ),
 
-          // Bottom Right Glow
+          // Bottom-right blurred circle
           Positioned(
             top: 433,
             left: 143,
-            child: Container(
-              width: 384,
-              height: 384,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [AppColors.gradientBottom, Colors.transparent],
-                  stops: [0.0, 1.0],
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 140, sigmaY: 140),
+              child: Container(
+                width: 384,
+                height: 384,
+                decoration: BoxDecoration(
+                  color: AppColors.gradientBottom,
+                  shape: BoxShape.circle,
                 ),
               ),
             ),

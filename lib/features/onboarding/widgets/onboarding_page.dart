@@ -5,12 +5,16 @@ import '../../../theme/app_theme.dart';
 
 class OnboardingPage extends StatelessWidget {
   final String svgPath;
+  final int width;
+  final int height;
   final String title;
   final String description;
 
   const OnboardingPage({
     super.key,
     required this.svgPath,
+    required this.height,
+    required this.width,
     required this.title,
     required this.description,
   });
@@ -29,10 +33,8 @@ class OnboardingPage extends StatelessWidget {
           // SVG illustration
           SvgPicture.asset(
             svgPath,
-            width: 160,
-            height: 160,
             colorFilter: const ColorFilter.mode(
-              AppColors.primary,
+              AppColors.onboardingIcon,
               BlendMode.srcIn,
             ),
           ),

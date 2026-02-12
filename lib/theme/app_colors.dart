@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   // Brand
   static const primary = Color(0xFF1A434E);
+  static const onboardingIcon = Color(0xFFBAC7CB);
   static const secondary = Color(0xFF93C5FD);
 
   // Accent / States
@@ -13,7 +14,7 @@ class AppColors {
 
   // Backgrounds
   static const background = Color(0xFFFFFFFF);
-  static const surface = Color(0xFFF9FAFB);
+  static const surface = Color(0xFFFFFFFF);
 
   // Text
   static const textPrimary = Color(0xFF0F172A);
@@ -24,7 +25,7 @@ class AppColors {
   static const divider = Color(0xFFF3F4F6);
 
   // Gradient
-  static final gradientTop = const Color(0x661A4D4F);
+  static final gradientTop = const Color(0xFFCDD8D9);
   static final gradientBottom = const Color(0xFF93C5FD).withValues(alpha: 0.4);
 
   // Dot indicator

@@ -22,16 +22,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'svg': 'assets/svg/onboarding_help.svg',
       'title': 'Get Help\nFast',
+      'width': 160,
+      'height': 160,
       'description': 'Find nearby service providers\nwhen you need help most.',
     },
     {
       'svg': 'assets/svg/onboarding_verified.svg',
       'title': 'Verified\nProviders',
+      'width': 160,
+      'height': 160,
       'description': 'Only trusted and verified service\nproviders near you',
     },
     {
       'svg': 'assets/svg/onboarding_payments.svg',
       'title': 'Simple\nPayments',
+      'width': 160,
+      'height': 160,
       'description': 'Fast wallet payments built for\nlow network areas',
     },
   ];
@@ -99,6 +105,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     return OnboardingPage(
                       svgPath: page['svg'] as String,
                       title: page['title'] as String,
+                      width: page['width'] as int,
+                      height: page['height'] as int,
                       description: page['description'] as String,
                     );
                   },

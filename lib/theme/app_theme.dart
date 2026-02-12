@@ -4,7 +4,7 @@ import 'app_colors.dart';
 class AppTheme {
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
-    scaffoldBackgroundColor: AppColors.background,
+    scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
     primaryColor: AppColors.primary,
 
     colorScheme: const ColorScheme.light(
@@ -17,7 +17,7 @@ class AppTheme {
     textTheme: const TextTheme(
       headlineMedium: TextStyle(
         fontSize: 48,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w900,
         color: AppColors.textPrimary,
       ),
       titleMedium: TextStyle(

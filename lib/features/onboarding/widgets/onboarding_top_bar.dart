@@ -17,24 +17,48 @@ class OnboardingTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-
       child: Row(
         children: [
-          // Progress line
+          // Segmented progress bars
           Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(
-                value: (currentPage + 1) / totalPages,
-                backgroundColor: AppColors.dotInactive.withValues(alpha: 0.3),
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.primary,
-                ),
-                minHeight: 4,
-              ),
+            child: Row(
+              children: List.generate(totalPages, (index) {
+                final isCompleted = index < currentPage;
+                final isCurrent = index == currentPage;
+
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      right: index < totalPages - 1 ? 8 : 0,
+                    ),
+                    child: TweenAnimationBuilder<Color?>(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      tween: ColorTween(
+                        end: isCurrent
+                            ? AppColors.primary
+                            : isCompleted
+                            ? AppColors.primary.withValues(alpha: 0.4)
+                            : AppColors.dotInactive.withValues(alpha: 0.4),
+                      ),
+                      builder: (context, color, _) {
+                        return Container(
+                          height: 4,
+                          width: 210,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              }),
             ),
           ),
-          const SizedBox(width: 16),
+
+          const SizedBox(width: 90),
 
           // Skip button
           GestureDetector(
@@ -43,11 +67,13 @@ class OnboardingTopBar extends StatelessWidget {
               'Skip',
               style: TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w700,
                 color: AppColors.textSecondary.withValues(alpha: 0.7),
               ),
             ),
           ),
+
+          const SizedBox(width: 16),
         ],
       ),
     );
