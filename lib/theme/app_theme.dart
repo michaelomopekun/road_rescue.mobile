@@ -31,7 +31,7 @@ class AppTheme {
         color: AppColors.textSecondary,
       ),
       labelLarge: TextStyle(
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: FontWeight.w600,
         color: Colors.white,
       ),

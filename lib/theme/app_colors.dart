@@ -6,6 +6,7 @@ class AppColors {
   static const secondary = Color(0xFF93C5FD);
 
   // Accent / States
+  static const accent = Color(0xFF22C55E);
   static const success = Color(0xFF22C55E);
   static const warning = Color(0xFFF59E0B);
   static const error = Color(0xFFEF4444);
@@ -20,8 +21,13 @@ class AppColors {
 
   // Borders
   static const border = Color(0xFFE5E7EB);
+  static const divider = Color(0xFFF3F4F6);
 
   // Gradient
   static const gradientTop = Color(0xFF1A4D4F);
   static const gradientBottom = Color(0xFF93C5FD);
+
+  // Dot indicator
+  static const dotActive = Color(0xFF1A434E);
+  static const dotInactive = Color(0xFFCBD5E1);
 }
