@@ -6,7 +6,8 @@ import 'features/onboarding/onboarding_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+  // final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+  final onboardingComplete = false;
 
   runApp(MyApp(onboardingComplete: onboardingComplete));
 }

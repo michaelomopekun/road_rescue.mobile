@@ -24,8 +24,8 @@ class AppColors {
   static const divider = Color(0xFFF3F4F6);
 
   // Gradient
-  static const gradientTop = Color(0xFF1A4D4F);
-  static const gradientBottom = Color(0xFF93C5FD);
+  static final gradientTop = const Color(0x661A4D4F);
+  static final gradientBottom = const Color(0xFF93C5FD).withValues(alpha: 0.4);
 
   // Dot indicator
   static const dotActive = Color(0xFF1A434E);

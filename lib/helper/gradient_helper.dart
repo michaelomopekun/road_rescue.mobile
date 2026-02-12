@@ -16,12 +16,12 @@ class GradientBackground extends StatelessWidget {
 
           // Top Left Glow
           Positioned(
-            top: -150,
-            left: -150,
+            top: 0,
+            left: -77,
             child: Container(
-              width: 350,
-              height: 350,
-              decoration: const BoxDecoration(
+              width: 311,
+              height: 324,
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [AppColors.gradientTop, Colors.transparent],
@@ -33,12 +33,12 @@ class GradientBackground extends StatelessWidget {
 
           // Bottom Right Glow
           Positioned(
-            bottom: -200,
-            right: -200,
+            top: 433,
+            left: 143,
             child: Container(
-              width: 400,
-              height: 400,
-              decoration: const BoxDecoration(
+              width: 384,
+              height: 384,
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [AppColors.gradientBottom, Colors.transparent],

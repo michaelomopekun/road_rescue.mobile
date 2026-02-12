@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_theme.dart';
 
 class OnboardingPage extends StatelessWidget {
-  final IconData icon;
+  final String svgPath;
   final String title;
   final String description;
 
   const OnboardingPage({
     super.key,
-    required this.icon,
+    required this.svgPath,
     required this.title,
     required this.description,
   });
@@ -25,15 +26,15 @@ class OnboardingPage extends StatelessWidget {
         children: [
           const Spacer(flex: 2),
 
-          // Icon container
-          Container(
+          // SVG illustration
+          SvgPicture.asset(
+            svgPath,
             width: 160,
             height: 160,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.35),
-              borderRadius: BorderRadius.circular(40),
+            colorFilter: const ColorFilter.mode(
+              AppColors.primary,
+              BlendMode.srcIn,
             ),
-            child: Icon(icon, size: 80, color: AppColors.primary),
           ),
 
           const SizedBox(height: 48),

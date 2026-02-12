@@ -20,17 +20,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<Map<String, dynamic>> _pages = const [
     {
-      'icon': Icons.person_pin_circle_outlined,
+      'svg': 'assets/svg/onboarding_help.svg',
       'title': 'Get Help\nFast',
       'description': 'Find nearby service providers\nwhen you need help most.',
     },
     {
-      'icon': Icons.verified_user_outlined,
+      'svg': 'assets/svg/onboarding_verified.svg',
       'title': 'Verified\nProviders',
       'description': 'Only trusted and verified service\nproviders near you',
     },
     {
-      'icon': Icons.account_balance_wallet_outlined,
+      'svg': 'assets/svg/onboarding_payments.svg',
       'title': 'Simple\nPayments',
       'description': 'Fast wallet payments built for\nlow network areas',
     },
@@ -97,7 +97,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   itemBuilder: (context, index) {
                     final page = _pages[index];
                     return OnboardingPage(
-                      icon: page['icon'] as IconData,
+                      svgPath: page['svg'] as String,
                       title: page['title'] as String,
                       description: page['description'] as String,
                     );
