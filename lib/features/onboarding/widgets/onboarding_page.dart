@@ -9,6 +9,8 @@ class OnboardingPage extends StatelessWidget {
   final int height;
   final String title;
   final String description;
+  final bool isPayment;
+  final bool isHelp;
 
   const OnboardingPage({
     super.key,
@@ -17,6 +19,8 @@ class OnboardingPage extends StatelessWidget {
     required this.width,
     required this.title,
     required this.description,
+    required this.isPayment,
+    required this.isHelp,
   });
 
   @override
@@ -30,6 +34,8 @@ class OnboardingPage extends StatelessWidget {
         children: [
           const Spacer(flex: 2),
 
+          if (isPayment) const SizedBox(height: 64),
+
           // SVG illustration
           SvgPicture.asset(
             svgPath,
@@ -39,7 +45,12 @@ class OnboardingPage extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 48),
+          if (isPayment)
+            const SizedBox(height: 68)
+          else if (isHelp)
+            const SizedBox(height: 70)
+          else
+            const SizedBox(height: 48),
 
           // Title
           Text(

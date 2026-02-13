@@ -24,6 +24,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'title': 'Get Help\nFast',
       'width': 160,
       'height': 160,
+      'isPayment': false,
+      'isHelp': true,
       'description': 'Find nearby service providers\nwhen you need help most.',
     },
     {
@@ -31,6 +33,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'title': 'Verified\nProviders',
       'width': 160,
       'height': 160,
+      'isPayment': false,
+      'isHelp': false,
       'description': 'Only trusted and verified service\nproviders near you',
     },
     {
@@ -38,6 +42,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'title': 'Simple\nPayments',
       'width': 160,
       'height': 160,
+      'isPayment': true,
+      'isHelp': false,
       'description': 'Fast wallet payments built for\nlow network areas',
     },
   ];
@@ -108,6 +114,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       width: page['width'] as int,
                       height: page['height'] as int,
                       description: page['description'] as String,
+                      isPayment: page['isPayment'] as bool,
+                      isHelp: page['isHelp'] as bool,
                     );
                   },
                 ),
