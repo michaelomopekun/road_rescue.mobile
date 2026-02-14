@@ -7,6 +7,7 @@ import 'package:road_rescue/shared/widgets/app_logo.dart';
 import 'package:road_rescue/shared/widgets/custom_text_field.dart';
 import 'package:road_rescue/shared/widgets/primary_button.dart';
 import 'package:road_rescue/shared/widgets/terms_and_privacy_text.dart';
+import 'package:road_rescue/theme/app_theme.dart';
 
 class LoginSignupScreen extends StatefulWidget {
   const LoginSignupScreen({super.key});
@@ -44,29 +45,25 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             children: [
-              const SizedBox(height: 80),
+              const SizedBox(height: 190),
 
               // App Logo
               const AppLogo(size: 64),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
               // Title
-              const Text(
+              Text(
                 'Log in or sign up',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                ),
+                style: AppTheme.lightTheme.textTheme.titleMedium,
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
 
               // Email Input
               CustomTextField(
                 controller: _emailController,
-                hintText: 'jsmith.mobbin1@gmail.com',
+                hintText: 'example@gmail.com',
                 keyboardType: TextInputType.emailAddress,
               ),
 
@@ -101,7 +98,8 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                 icon: const Icon(Icons.apple, size: 24, color: Colors.black),
                 onPressed: _onAppleSignIn,
               ),
-              const SizedBox(height: 40),
+
+              const SizedBox(height: 48),
 
               // Terms & Privacy
               TermsAndPrivacyText(

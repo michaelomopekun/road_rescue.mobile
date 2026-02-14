@@ -33,11 +33,16 @@ class CustomTextField extends StatelessWidget {
       validator: validator,
       onChanged: onChanged,
 
-      style: AppTheme.lightTheme.textTheme.bodyMedium,
+      style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
 
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: AppTheme.lightTheme.textTheme.bodyLarge,
+        hintStyle: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+        ),
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
         filled: true,
