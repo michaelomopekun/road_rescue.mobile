@@ -21,7 +21,7 @@ class AppColors {
   static const textSecondary = Color(0xFF475569);
 
   // Borders
-  static const border = Color(0xFFE5E7EB);
+  static const border = Color(0xFFE2E8F0);
   static const divider = Color(0xFFF3F4F6);
 
   // Gradient

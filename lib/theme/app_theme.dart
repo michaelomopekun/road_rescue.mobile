@@ -21,14 +21,19 @@ class AppTheme {
         color: AppColors.textPrimary,
       ),
       titleMedium: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontSize: 32,
+        fontWeight: FontWeight.w900,
         color: AppColors.textPrimary,
       ),
       bodyMedium: TextStyle(
         fontSize: 18,
-        fontWeight: FontWeight.w400,
+        fontWeight: FontWeight.w900,
         color: AppColors.textSecondary,
+      ),
+      bodySmall: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w900,
+        color: AppColors.textPrimary,
       ),
       labelLarge: TextStyle(
         fontSize: 18,
