@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:road_rescue/features/onboarding/widgets/login_link.dart';
 import 'package:road_rescue/features/onboarding/widgets/onboarding_page.dart';
 import 'package:road_rescue/features/onboarding/widgets/onboarding_top_bar.dart';
-import 'package:road_rescue/features/onboarding/widgets/primary_button.dart';
+import 'package:road_rescue/shared/widgets/primary_button.dart';
 import 'package:road_rescue/features/onboarding/widgets/progress_indicator.dart';
-import 'package:road_rescue/helper/gradient_helper.dart';
+import 'package:road_rescue/shared/helper/gradient_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
