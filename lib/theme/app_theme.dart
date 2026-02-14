@@ -32,8 +32,13 @@ class AppTheme {
       ),
       bodySmall: TextStyle(
         fontSize: 18,
-        fontWeight: FontWeight.w900,
+        fontWeight: FontWeight.w300,
         color: AppColors.textPrimary,
+      ),
+      labelSmall: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textSecondary,
       ),
       labelLarge: TextStyle(
         fontSize: 18,
