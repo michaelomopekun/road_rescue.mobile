@@ -25,15 +25,20 @@ class AppTheme {
         fontWeight: FontWeight.w900,
         color: AppColors.textPrimary,
       ),
-      bodyMedium: TextStyle(
+      bodyLarge: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w900,
         color: AppColors.textSecondary,
       ),
-      bodySmall: TextStyle(
+      bodyMedium: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w300,
         color: AppColors.textPrimary,
+      ),
+      bodySmall: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w300,
+        color: AppColors.textSecondary,
       ),
       labelSmall: TextStyle(
         fontSize: 18,

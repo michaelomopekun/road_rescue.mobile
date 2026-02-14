@@ -22,7 +22,7 @@ class AppColors {
 
   // Borders
   static const border = Color(0xFFE2E8F0);
-  static const divider = Color(0xFFF3F4F6);
+  static const divider = Color(0xFFCBD5E1);
 
   // Gradient
   static final gradientTop = const Color(0xFFCDD8D9);

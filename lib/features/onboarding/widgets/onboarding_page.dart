@@ -65,7 +65,7 @@ class OnboardingPage extends StatelessWidget {
           Text(
             description,
             textAlign: TextAlign.center,
-            style: AppTheme.lightTheme.textTheme.bodyMedium,
+            style: AppTheme.lightTheme.textTheme.bodyLarge,
           ),
 
           const Spacer(flex: 3),

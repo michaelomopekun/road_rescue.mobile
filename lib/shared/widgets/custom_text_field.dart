@@ -33,11 +33,11 @@ class CustomTextField extends StatelessWidget {
       validator: validator,
       onChanged: onChanged,
 
-      style: AppTheme.lightTheme.textTheme.bodySmall,
+      style: AppTheme.lightTheme.textTheme.bodyMedium,
 
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: AppTheme.lightTheme.textTheme.bodyMedium,
+        hintStyle: AppTheme.lightTheme.textTheme.bodyLarge,
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
         filled: true,
