@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:road_rescue/features/auth/login_signup_screen.dart';
 import 'package:road_rescue/features/onboarding/widgets/login_link.dart';
 import 'package:road_rescue/features/onboarding/widgets/onboarding_page.dart';
 import 'package:road_rescue/features/onboarding/widgets/onboarding_top_bar.dart';
@@ -71,11 +72,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     if (!mounted) return;
 
-    //TODO: Navigate to login + sign up screen
-    // Navigator.pushReplacement(
-    //   context,
-    //   MaterialPageRoute(builder: (_) => const LoginScreen()),
-    // );
+    //Navigate to login + sign up screen if already onboarded
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginSignupScreen()),
+    );
   }
 
   @override
@@ -143,7 +144,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               // Login link
               LoginLink(
                 onTap: () {
-                  // TODO: Navigate to login + sign up screen
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LoginSignupScreen(),
+                    ),
+                  );
                 },
               ),
 

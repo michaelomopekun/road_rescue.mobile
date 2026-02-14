@@ -15,6 +15,7 @@ class LoginLink extends StatelessWidget {
           'Already have an account? ',
           style: TextStyle(
             fontSize: 14,
+            fontWeight: FontWeight.w600,
             color: AppColors.textSecondary.withValues(alpha: 0.7),
           ),
         ),
@@ -26,7 +27,7 @@ class LoginLink extends StatelessWidget {
             'Log in',
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w900,
               color: AppColors.textPrimary,
             ),
           ),
