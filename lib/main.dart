@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
 import 'features/onboarding/onboarding_screen.dart';
+import 'features/auth/login_signup_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +24,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: onboardingComplete
-          ? const Scaffold(body: Center(child: Text('Login + Signup')))
+          ? const LoginSignupScreen()
           : const OnboardingScreen(),
     );
   }
