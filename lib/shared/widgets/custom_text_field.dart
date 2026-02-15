@@ -11,6 +11,7 @@ class CustomTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
+  final bool enabled;
 
   const CustomTextField({
     super.key,
@@ -22,6 +23,7 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.validator,
     this.onChanged,
+    this.enabled = true,
   });
 
   @override
@@ -75,6 +77,7 @@ class CustomTextField extends StatelessWidget {
           borderSide: BorderSide(color: AppColors.error, width: 1),
         ),
       ),
+      enabled: enabled,
     );
   }
 }

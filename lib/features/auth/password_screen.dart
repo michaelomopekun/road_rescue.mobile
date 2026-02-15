@@ -7,7 +7,9 @@ import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/terms_and_privacy_text.dart';
 
 class PasswordScreen extends StatefulWidget {
-  const PasswordScreen({super.key});
+  final String email;
+
+  const PasswordScreen({super.key, required this.email});
 
   @override
   State<PasswordScreen> createState() => _PasswordScreenState();
@@ -23,7 +25,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
   }
 
   void _onContinue() {
-    // TODO: Handle password submission
+    // TODO: Handle password login
   }
 
   @override
@@ -44,11 +46,20 @@ class _PasswordScreenState extends State<PasswordScreen> {
 
                 // Title
                 Text(
-                  'Log in or sign up',
+                  'Password',
                   style: AppTheme.lightTheme.textTheme.titleMedium,
                 ),
 
                 const SizedBox(height: 40),
+
+                // Email display (read-only)
+                CustomTextField(
+                  controller: TextEditingController(text: widget.email),
+                  hintText: '',
+                  enabled: false,
+                ),
+
+                const SizedBox(height: 16),
 
                 // Password Input Field
                 CustomTextField(
