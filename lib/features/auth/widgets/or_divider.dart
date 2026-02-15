@@ -5,7 +5,7 @@ import 'package:road_rescue/theme/app_theme.dart';
 class OrDivider extends StatelessWidget {
   final String text;
 
-  const OrDivider({super.key, this.text = 'OR'});
+  const OrDivider({super.key, this.text = 'or'});
 
   @override
   Widget build(BuildContext context) {
