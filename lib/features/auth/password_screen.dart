@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:road_rescue/shared/helper/gradient_helper.dart';
+import 'package:road_rescue/theme/app_theme.dart';
 import '../../shared/widgets/app_logo.dart';
 import '../../shared/widgets/custom_text_field.dart';
 import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/terms_and_privacy_text.dart';
-import '../../theme/app_colors.dart';
 
 class PasswordScreen extends StatefulWidget {
   const PasswordScreen({super.key});
@@ -45,12 +44,8 @@ class _PasswordScreenState extends State<PasswordScreen> {
 
                 // Title
                 Text(
-                  'Password',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                  'Log in or sign up',
+                  style: AppTheme.lightTheme.textTheme.titleMedium,
                 ),
 
                 const SizedBox(height: 40),
