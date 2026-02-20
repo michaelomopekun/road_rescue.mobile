@@ -31,56 +31,54 @@ class _PasswordScreenState extends State<PasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GradientBackground(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              children: [
-                const Spacer(flex: 2),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            children: [
+              const Spacer(flex: 2),
 
-                // App Logo
-                const AppLogo(),
+              // App Logo
+              const AppLogo(),
 
-                const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-                // Title
-                Text(
-                  'Password',
-                  style: AppTheme.lightTheme.textTheme.titleMedium,
-                ),
+              // Title
+              Text(
+                'Password',
+                style: AppTheme.lightTheme.textTheme.titleMedium,
+              ),
 
-                const SizedBox(height: 40),
+              const SizedBox(height: 40),
 
-                // Email display (read-only)
-                CustomTextField(
-                  controller: TextEditingController(text: widget.email),
-                  hintText: '',
-                  enabled: false,
-                ),
+              // Email display (read-only)
+              CustomTextField(
+                controller: TextEditingController(text: widget.email),
+                hintText: '',
+                enabled: false,
+              ),
 
-                const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-                // Password Input Field
-                CustomTextField(
-                  controller: _passwordController,
-                  hintText: 'Enter your password',
-                  obscureText: true,
-                ),
+              // Password Input Field
+              CustomTextField(
+                controller: _passwordController,
+                hintText: 'Enter your password',
+                obscureText: true,
+              ),
 
-                const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-                // Continue Button
-                PrimaryButton(text: 'Continue', onPressed: _onContinue),
+              // Continue Button
+              PrimaryButton(text: 'Continue', onPressed: _onContinue),
 
-                const Spacer(flex: 3),
+              const Spacer(flex: 3),
 
-                // Terms and Privacy
-                const TermsAndPrivacyText(),
+              // Terms and Privacy
+              const TermsAndPrivacyText(),
 
-                const SizedBox(height: 16),
-              ],
-            ),
+              const SizedBox(height: 16),
+            ],
           ),
         ),
       ),

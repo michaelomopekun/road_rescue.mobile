@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:road_rescue/features/auth/password_screen.dart';
+import 'package:road_rescue/features/auth/role_selection_screen.dart';
 import 'package:road_rescue/features/auth/widgets/oauth_buttons.dart';
 import 'package:road_rescue/features/auth/widgets/or_divider.dart';
 import 'package:road_rescue/shared/helper/gradient_helper.dart';
@@ -32,7 +33,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
 
     // TODO: Replace with actual API call to check if user exists
     // final response = await AuthService.checkEmail(email);
-    final bool userExists = true; // mock response
+    final bool userExists = false; // mock response
 
     if (!mounted) return;
 
@@ -42,11 +43,13 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
         context,
         MaterialPageRoute(builder: (_) => PasswordScreen(email: email)),
       );
+    } else {
+      // New user → navigate to Signup flow
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => RoleSelectionScreen()),
+      );
     }
-    // else {
-    //   // New user → navigate to Signup flow
-    //   // TODO: Navigate to signup screen
-    // }
   }
 
   void _onGoogleSignIn() {
