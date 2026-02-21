@@ -3,6 +3,8 @@ import 'package:road_rescue/features/auth/widgets/signup_steps/name_step_widget.
 import 'package:road_rescue/features/auth/widgets/signup_steps/phone_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/otp_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/password_step_widget.dart';
+import 'package:road_rescue/shared/widgets/custom_back_button.dart';
+import 'package:road_rescue/theme/app_colors.dart';
 
 enum SignupStep { name, phone, otp, password }
 
@@ -109,26 +111,31 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
         .toInt();
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _onBack,
-        ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
+      // appBar: AppBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: CustomBackButton(
+                borderColor: AppColors.backButtonBorder,
+                backgroundColor: AppColors.backButtonBackground,
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+
+            const SizedBox(height: 48),
+
             // Progress indicator
             LinearProgressIndicator(
               value: progressPercentage / 100,
               minHeight: 4,
               backgroundColor: Colors.grey[300],
             ),
-            const SizedBox(height: 32),
+
+            const SizedBox(height: 134),
 
             // Step content
             _buildStepContent(currentStep),

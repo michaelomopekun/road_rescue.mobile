@@ -53,7 +53,7 @@ class _NameStepWidgetState extends State<NameStepWidget> {
           child: PrimaryButton(
             label: 'Continue',
             onPressed: _onContinue,
-            text: '',
+            text: 'Continue',
           ),
         ),
       ],

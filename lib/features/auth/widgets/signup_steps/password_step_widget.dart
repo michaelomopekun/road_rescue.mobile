@@ -58,7 +58,7 @@ class _PasswordStepWidgetState extends State<PasswordStepWidget> {
           child: PrimaryButton(
             label: 'Continue',
             onPressed: _onContinue,
-            text: '',
+            text: 'Continue',
           ),
         ),
       ],

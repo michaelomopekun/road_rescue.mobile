@@ -98,7 +98,7 @@ class _OtpStepWidgetState extends State<OtpStepWidget> {
           child: PrimaryButton(
             label: 'Continue',
             onPressed: _onContinue,
-            text: '',
+            text: 'Continue',
           ),
         ),
       ],

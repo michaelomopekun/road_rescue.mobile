@@ -47,7 +47,7 @@ class _PhoneStepWidgetState extends State<PhoneStepWidget> {
           child: PrimaryButton(
             label: 'Continue',
             onPressed: _onContinue,
-            text: '',
+            text: 'Continue',
           ),
         ),
       ],
