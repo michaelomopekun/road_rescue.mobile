@@ -3,6 +3,8 @@ import 'package:road_rescue/features/auth/widgets/signup_steps/name_step_widget.
 import 'package:road_rescue/features/auth/widgets/signup_steps/phone_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/otp_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/password_step_widget.dart';
+import 'package:road_rescue/features/auth/widgets/signup_steps/workshop_info_step_widget.dart';
+import 'package:road_rescue/features/auth/widgets/signup_steps/address_step_widget.dart';
 import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
@@ -36,6 +38,8 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       'fullName': '',
       'phoneNumber': '',
       'otp': '',
+      'workshopName': '',
+      'address': '',
       'password': '',
     };
   }
@@ -50,11 +54,12 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
         SignupStep.password,
       ];
     } else if (widget.role == UserRole.mechanic) {
-      // TODO: Add mechanic-specific steps later
       steps = [
         SignupStep.name,
         SignupStep.phone,
         SignupStep.otp,
+        SignupStep.workshopInfo,
+        SignupStep.address,
         SignupStep.password,
       ];
     }
@@ -171,6 +176,22 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
           phoneNumber: formData['phoneNumber'] as String,
           onContinue: (otp) {
             _updateFormData('otp', otp);
+            _onContinue();
+          },
+        );
+
+      case SignupStep.workshopInfo:
+        return WorkshopInfoStepWidget(
+          onContinue: (workshopName) {
+            _updateFormData('workshopName', workshopName);
+            _onContinue();
+          },
+        );
+
+      case SignupStep.address:
+        return AddressStepWidget(
+          onContinue: (address) {
+            _updateFormData('address', address);
             _onContinue();
           },
         );
