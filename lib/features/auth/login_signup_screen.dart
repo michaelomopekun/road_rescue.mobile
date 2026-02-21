@@ -44,10 +44,12 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
         MaterialPageRoute(builder: (_) => PasswordScreen(email: email)),
       );
     } else {
-      // New user → navigate to Signup flow
+      // New user → navigate to Role Selection
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => RoleSelectionScreen()),
+        MaterialPageRoute(
+          builder: (_) => RoleSelectionScreen(email: email),
+        ),
       );
     }
   }
@@ -93,7 +95,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
               const SizedBox(height: 16),
 
               // Continue Button
-              PrimaryButton(text: 'Continue', onPressed: _onContinue),
+              PrimaryButton(text: 'Continue', onPressed: _onContinue, label: '',),
 
               const SizedBox(height: 32),
 

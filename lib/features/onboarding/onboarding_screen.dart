@@ -136,6 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: PrimaryButton(
                   text: _isLastPage ? 'Get Started' : 'Next',
                   onPressed: _onNext,
+                  label: '',
                 ),
               ),
 

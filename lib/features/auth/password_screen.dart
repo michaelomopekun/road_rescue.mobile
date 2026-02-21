@@ -70,7 +70,11 @@ class _PasswordScreenState extends State<PasswordScreen> {
               const SizedBox(height: 20),
 
               // Continue Button
-              PrimaryButton(text: 'Continue', onPressed: _onContinue),
+              PrimaryButton(
+                text: 'Continue',
+                onPressed: _onContinue,
+                label: '',
+              ),
 
               const Spacer(flex: 3),
 

@@ -1,36 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:road_rescue/features/auth/signup_flow_screen.dart';
 import 'package:road_rescue/features/auth/widgets/role_button.dart';
-import 'package:road_rescue/shared/helper/gradient_helper.dart';
 import 'package:road_rescue/shared/widgets/custom_back_button.dart';
-import 'package:road_rescue/shared/widgets/primary_button.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 import 'package:road_rescue/theme/app_theme.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
-  const RoleSelectionScreen({super.key});
+  final String email;
+
+  const RoleSelectionScreen({super.key, required this.email});
 
   @override
   State<RoleSelectionScreen> createState() => _RoleSelectionScreenState();
 }
 
 class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
-  String? _selectedRole; // 'driver' or 'mechanic'
-
-  void _onRoleSelected(String role) {
-    setState(() => _selectedRole = role);
-  }
-
-  void _onContinue() {
-    if (_selectedRole == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a role')));
-      return;
-    }
-
-    // TODO: Handle role selection and navigate to next screen
-    // Example: Navigator.push(context, MaterialPageRoute(...))
+  void _onRoleSelected(UserRole role) {
+    // Navigate directly to SignupFlowScreen on role tap
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SignupFlowScreen(role: role, email: widget.email),
+      ),
+    );
   }
 
   @override
@@ -75,24 +68,24 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
               const SizedBox(height: 117),
 
-              // Driver Button
+              // Driver Button - Tap to navigate
               RoleButton(
                 label: 'Driver',
-                isSelected: _selectedRole == 'driver',
+                isSelected: false,
                 selectedColor: AppColors.primary,
                 textColor: AppColors.background,
-                onPressed: () => _onRoleSelected('driver'),
+                onPressed: () => _onRoleSelected(UserRole.driver),
               ),
 
               const SizedBox(height: 16),
 
-              // Mechanic Button
+              // Mechanic Button - Tap to navigate
               RoleButton(
                 label: 'Mechanic',
-                isSelected: _selectedRole == 'mechanic',
+                isSelected: false,
                 selectedColor: AppColors.lightSecondary,
                 textColor: AppColors.textPrimary,
-                onPressed: () => _onRoleSelected('mechanic'),
+                onPressed: () => _onRoleSelected(UserRole.mechanic),
               ),
 
               const Spacer(),
