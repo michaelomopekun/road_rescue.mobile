@@ -6,7 +6,7 @@ import 'package:road_rescue/features/auth/widgets/signup_steps/password_step_wid
 import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
-enum SignupStep { name, phone, otp, password }
+enum SignupStep { name, phone, otp, password, workshopInfo, address }
 
 enum UserRole { driver, mechanic }
 
@@ -122,7 +122,7 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
               child: CustomBackButton(
                 borderColor: AppColors.backButtonBorder,
                 backgroundColor: AppColors.backButtonBackground,
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => _onBack(),
               ),
             ),
 

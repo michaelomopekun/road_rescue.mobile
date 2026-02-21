@@ -86,19 +86,19 @@ class _OtpStepWidgetState extends State<OtpStepWidget> {
           ),
         ),
         const SizedBox(height: 24),
-        Center(
-          child: Text(
-            'Resend · 00:56',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ),
-        const SizedBox(height: 32),
         SizedBox(
           width: double.infinity,
           child: PrimaryButton(
             label: 'Continue',
             onPressed: _onContinue,
             text: 'Continue',
+          ),
+        ),
+        const SizedBox(height: 32),
+        Center(
+          child: Text(
+            'Resend · 00:56',
+            style: Theme.of(context).textTheme.bodySmall,
           ),
         ),
       ],
