@@ -5,6 +5,8 @@ import 'package:road_rescue/features/auth/widgets/signup_steps/otp_step_widget.d
 import 'package:road_rescue/features/auth/widgets/signup_steps/password_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/workshop_info_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/address_step_widget.dart';
+import 'package:road_rescue/features/mechanic/mechanic_locked_dashboard.dart';
+import 'package:road_rescue/models/workshop_location.dart';
 import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
@@ -86,9 +88,6 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
   }
 
   void _completeSignup() async {
-    // TODO: Submit signup data to backend
-    // POST /signup with role, email, fullName, phoneNumber, otp, password
-
     if (!mounted) return;
 
     if (widget.role == UserRole.driver) {
@@ -99,9 +98,18 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       ).showSnackBar(const SnackBar(content: Text('Driver signup completed!')));
       Navigator.pushReplacementNamed(context, '/driver-dashboard');
     } else if (widget.role == UserRole.mechanic) {
-      // Navigate to Mechanic Locked Dashboard (Verification Pending)
-      // TODO: Replace with actual MechanicLockedDashboard route
-      Navigator.pushReplacementNamed(context, '/mechanic-locked-dashboard');
+      // Navigate to Mechanic Locked Dashboard with signup data
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MechanicLockedDashboard(
+            fullName: formData['fullName'] as String,
+            phoneNumber: formData['phoneNumber'] as String,
+            workshopName: formData['workshopName'] as String,
+            workshopLocation: formData['workshopLocation'] as WorkshopLocation,
+          ),
+        ),
+      );
     }
   }
 
