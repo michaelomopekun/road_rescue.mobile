@@ -170,7 +170,8 @@ class _AddressStepWidgetState extends State<AddressStepWidget> {
   }
 
   void _onPredictionSelected(PlacePrediction prediction) {
-    // Find the mock data for this prediction
+    print('🎯 Prediction selected: "${prediction.mainText}"');
+
     final mockData = _mockSuggestions.firstWhere(
       (s) => s['placeId'] == prediction.placeId,
       orElse: () => _mockSuggestions.first,
@@ -186,10 +187,12 @@ class _AddressStepWidgetState extends State<AddressStepWidget> {
       country: mockData['country']!,
     );
 
+    print('✅ Location set: ${location.formattedAddress}');
+
     setState(() {
       _selectedLocation = location;
-      _addressController.text = location.formattedAddress;
       _predictions = [];
+      // Don't set _addressController.text here - let the green indicator show instead
     });
   }
 
@@ -202,6 +205,8 @@ class _AddressStepWidgetState extends State<AddressStepWidget> {
       );
       return;
     }
+    print('✅ Address selected, navigating to next step');
+    print('📍 Location: ${_selectedLocation!.formattedAddress}');
     widget.onContinue(_selectedLocation!);
   }
 
@@ -240,6 +245,7 @@ class _AddressStepWidgetState extends State<AddressStepWidget> {
             constraints: const BoxConstraints(maxHeight: 300),
             child: ListView.separated(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: _predictions.length,
               separatorBuilder: (_, __) =>
                   Divider(height: 1, color: Colors.grey[300]),

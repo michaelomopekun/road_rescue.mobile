@@ -105,13 +105,8 @@ class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
         ),
       ),
       bottomNavigationBar: DashboardBottomNavBar(
-        currentIndex: _currentNavIndex,
-        onTap: (index) {
-          setState(() {
-            _currentNavIndex = index;
-          });
-          // TODO: Handle navigation based on index
-        },
+        onHomeTap: () => {},
+        // TODO: Handle navigation based on index
       ),
     );
   }

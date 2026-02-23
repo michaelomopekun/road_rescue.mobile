@@ -10,27 +10,34 @@ class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    this.onPressed,
     required this.label,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isEnabled = onPressed != null;
+
     return SizedBox(
       width: double.infinity,
       height: 60,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: isEnabled ? AppColors.primary : Colors.grey[400],
           foregroundColor: Colors.white,
-          elevation: 0,
+          elevation: isEnabled ? 0 : 0,
+          disabledBackgroundColor: Colors.grey[400],
+          disabledForegroundColor: Colors.grey[600],
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           textStyle: AppTheme.lightTheme.textTheme.labelLarge,
         ),
-        child: Text(text),
+        child: Text(
+          text,
+          style: TextStyle(color: isEnabled ? Colors.white : Colors.grey[600]),
+        ),
       ),
     );
   }

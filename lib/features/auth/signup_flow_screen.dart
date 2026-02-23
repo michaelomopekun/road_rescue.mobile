@@ -41,7 +41,7 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       'phoneNumber': '',
       'otp': '',
       'workshopName': '',
-      'address': '',
+      'workshopLocation': null,
       'password': '',
     };
   }
@@ -198,8 +198,8 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
 
       case SignupStep.address:
         return AddressStepWidget(
-          onContinue: (address) {
-            _updateFormData('address', address);
+          onContinue: (workshopLocation) {
+            _updateFormData('workshopLocation', workshopLocation);
             _onContinue();
           },
         );
