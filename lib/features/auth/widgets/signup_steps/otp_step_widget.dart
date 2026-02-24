@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/shared/widgets/primary_button.dart';
+import 'package:road_rescue/theme/app_colors.dart';
 
 class OtpStepWidget extends StatefulWidget {
   final String phoneNumber;
@@ -19,6 +20,7 @@ class _OtpStepWidgetState extends State<OtpStepWidget> {
   late List<FocusNode> _focusNodes;
   late List<TextEditingController> _otpControllers;
   final int _otpLength = 4;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -39,6 +41,19 @@ class _OtpStepWidgetState extends State<OtpStepWidget> {
   }
 
   void _onOtpChange(int index, String value) {
+    // Only allow numbers
+    if (value.isNotEmpty && !RegExp(r'[0-9]').hasMatch(value)) {
+      _otpControllers[index].clear();
+      return;
+    }
+
+    // Clear error when user starts typing
+    if (_errorMessage != null) {
+      setState(() {
+        _errorMessage = null;
+      });
+    }
+
     if (value.length == 1 && index < _otpLength - 1) {
       _focusNodes[index + 1].requestFocus();
     }
@@ -46,9 +61,13 @@ class _OtpStepWidgetState extends State<OtpStepWidget> {
 
   void _onContinue() {
     final otp = _otpControllers.map((c) => c.text).join();
-    if (otp.length == _otpLength) {
-      widget.onContinue(otp);
+    if (otp.length != _otpLength) {
+      setState(() {
+        _errorMessage = 'Please enter all 4 digits';
+      });
+      return;
     }
+    widget.onContinue(otp);
   }
 
   @override
@@ -79,12 +98,45 @@ class _OtpStepWidgetState extends State<OtpStepWidget> {
                   counterText: '',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _errorMessage != null
+                          ? AppColors.error
+                          : Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _errorMessage != null
+                          ? AppColors.error
+                          : Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _errorMessage != null
+                          ? AppColors.error
+                          : AppColors.primary,
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
             ),
           ),
         ),
+        if (_errorMessage != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _errorMessage!,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.error),
+          ),
+        ],
         const SizedBox(height: 24),
         SizedBox(
           width: double.infinity,

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 class WorkshopAddressCard extends StatelessWidget {
-  final String workshopAddress;
-  final double latitude;
-  final double longitude;
+  // final String workshopAddress;
+  // final double latitude;
+  // final double longitude;
   final VoidCallback onEditPressed;
 
   const WorkshopAddressCard({
     super.key,
-    required this.workshopAddress,
-    required this.latitude,
-    required this.longitude,
+    // required this.workshopAddress,
+    // required this.latitude,
+    // required this.longitude,
     required this.onEditPressed,
   });
 
@@ -47,19 +47,19 @@ class WorkshopAddressCard extends StatelessWidget {
         // Map Preview
         Container(
           height: 200,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
-            image: DecorationImage(
-              image: NetworkImage(
-                'https://maps.googleapis.com/maps/api/staticmap?center=$latitude,$longitude&zoom=15&size=400x200&key=YOUR_GOOGLE_API_KEY&markers=color:red%7C$latitude,$longitude',
-              ),
-              fit: BoxFit.cover,
-              onError: (exception, stackTrace) {
-                // Fallback if image fails to load
-              },
-            ),
-          ),
+          // decoration: BoxDecoration(
+          //   borderRadius: BorderRadius.circular(12),
+          //   border: Border.all(color: Colors.grey[200]!),
+          //   image: DecorationImage(
+          //     image: NetworkImage(
+          //       'https://maps.googleapis.com/maps/api/staticmap?center=$latitude,$longitude&zoom=15&size=400x200&key=YOUR_GOOGLE_API_KEY&markers=color:red%7C$latitude,$longitude',
+          //     ),
+          //     fit: BoxFit.cover,
+          //     onError: (exception, stackTrace) {
+          //       // Fallback if image fails to load
+          //     },
+          //   ),
+          // ),
           child: Stack(
             children: [
               Positioned(
@@ -100,14 +100,14 @@ class WorkshopAddressCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                workshopAddress,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+              // Text(
+              //   workshopAddress,
+              //   style: Theme.of(
+              //     context,
+              //   ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              //   maxLines: 2,
+              //   overflow: TextOverflow.ellipsis,
+              // ),
               const SizedBox(height: 4),
               Text(
                 'Workshop Location',

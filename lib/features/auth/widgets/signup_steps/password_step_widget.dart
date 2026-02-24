@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/shared/widgets/custom_text_field.dart';
 import 'package:road_rescue/shared/widgets/primary_button.dart';
+import 'package:road_rescue/shared/utils/validators.dart';
 
 class PasswordStepWidget extends StatefulWidget {
   final String email;
@@ -19,6 +20,8 @@ class PasswordStepWidget extends StatefulWidget {
 class _PasswordStepWidgetState extends State<PasswordStepWidget> {
   final _passwordController = TextEditingController();
   bool _obscureText = true;
+  String? _errorMessage;
+  bool _isPasswordValid = false;
 
   @override
   void dispose() {
@@ -26,9 +29,24 @@ class _PasswordStepWidgetState extends State<PasswordStepWidget> {
     super.dispose();
   }
 
+  void _onPasswordChanged(String value) {
+    setState(() {
+      _errorMessage = Validators.validatePasswordSimple(value);
+      _isPasswordValid = _errorMessage == null && value.isNotEmpty;
+    });
+  }
+
   void _onContinue() {
     final password = _passwordController.text.trim();
-    if (password.isEmpty) return;
+    final validationError = Validators.validatePasswordSimple(password);
+
+    if (validationError != null) {
+      setState(() {
+        _errorMessage = validationError;
+      });
+      return;
+    }
+
     widget.onContinue(password);
   }
 
@@ -41,8 +59,9 @@ class _PasswordStepWidgetState extends State<PasswordStepWidget> {
         const SizedBox(height: 32),
         CustomTextField(
           controller: _passwordController,
-          hintText: 'Enter password',
+          hintText: 'Enter password (min 8 characters)',
           obscureText: _obscureText,
+          onChanged: _onPasswordChanged,
           suffixIcon: IconButton(
             icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
             onPressed: () {
@@ -52,12 +71,29 @@ class _PasswordStepWidgetState extends State<PasswordStepWidget> {
             },
           ),
         ),
+        if (_errorMessage != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _errorMessage!,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.red),
+          ),
+        ] else if (_isPasswordValid) ...[
+          const SizedBox(height: 8),
+          Text(
+            '✓ Password is valid',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.green),
+          ),
+        ],
         const SizedBox(height: 24),
         SizedBox(
           width: double.infinity,
           child: PrimaryButton(
             label: 'Continue',
-            onPressed: _onContinue,
+            onPressed: _isPasswordValid ? _onContinue : null,
             text: 'Continue',
           ),
         ),

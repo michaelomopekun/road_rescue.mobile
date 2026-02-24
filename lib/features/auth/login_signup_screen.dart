@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:road_rescue/features/auth/password_screen.dart';
 import 'package:road_rescue/features/auth/role_selection_screen.dart';
 import 'package:road_rescue/features/auth/widgets/oauth_buttons.dart';
 import 'package:road_rescue/features/auth/widgets/or_divider.dart';
@@ -9,6 +8,7 @@ import 'package:road_rescue/shared/widgets/app_logo.dart';
 import 'package:road_rescue/shared/widgets/custom_text_field.dart';
 import 'package:road_rescue/shared/widgets/primary_button.dart';
 import 'package:road_rescue/shared/widgets/terms_and_privacy_text.dart';
+import 'package:road_rescue/shared/utils/validators.dart';
 import 'package:road_rescue/theme/app_theme.dart';
 
 class LoginSignupScreen extends StatefulWidget {
@@ -20,6 +20,8 @@ class LoginSignupScreen extends StatefulWidget {
 
 class _LoginSignupScreenState extends State<LoginSignupScreen> {
   final _emailController = TextEditingController();
+  String? _errorMessage;
+  bool _isEmailValid = false;
 
   @override
   void dispose() {
@@ -27,31 +29,33 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
     super.dispose();
   }
 
+  void _onEmailChanged(String value) {
+    setState(() {
+      _errorMessage = Validators.validateEmail(value);
+      _isEmailValid = _errorMessage == null && value.isNotEmpty;
+    });
+  }
+
   void _onContinue() {
     final email = _emailController.text.trim();
-    if (email.isEmpty) return;
+    final validationError = Validators.validateEmail(email);
 
-    // TODO: Replace with actual API call to check if user exists
-    // final response = await AuthService.checkEmail(email);
-    final bool userExists = false; // mock response
+    if (validationError != null) {
+      setState(() {
+        _errorMessage = validationError;
+        _isEmailValid = false;
+      });
+      return;
+    }
 
     if (!mounted) return;
 
-    if (userExists) {
-      // Existing user → navigate to Password screen
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => PasswordScreen(email: email)),
-      );
-    } else {
-      // New user → navigate to Role Selection
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => RoleSelectionScreen(email: email),
-        ),
-      );
-    }
+    // TODO: Replace with actual API call to check if user exists
+    // For now, treat all new entries as new user → navigate to Role Selection
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => RoleSelectionScreen(email: email)),
+    );
   }
 
   void _onGoogleSignIn() {
@@ -90,12 +94,34 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                 controller: _emailController,
                 hintText: 'example@gmail.com',
                 keyboardType: TextInputType.emailAddress,
+                onChanged: _onEmailChanged,
               ),
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _errorMessage!,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.red),
+                ),
+              ] else if (_isEmailValid) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '✓ Email is valid',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.green),
+                ),
+              ],
 
               const SizedBox(height: 16),
 
               // Continue Button
-              PrimaryButton(text: 'Continue', onPressed: _onContinue, label: '',),
+              PrimaryButton(
+                text: 'Continue',
+                onPressed: _isEmailValid ? _onContinue : null,
+                label: '',
+              ),
 
               const SizedBox(height: 32),
 

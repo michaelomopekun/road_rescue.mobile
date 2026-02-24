@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:road_rescue/features/auth/widgets/signup_steps/name_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/phone_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/otp_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/password_step_widget.dart';
-import 'package:road_rescue/features/auth/widgets/signup_steps/workshop_info_step_widget.dart';
-import 'package:road_rescue/features/auth/widgets/signup_steps/address_step_widget.dart';
 import 'package:road_rescue/features/mechanic/mechanic_locked_dashboard.dart';
-import 'package:road_rescue/models/workshop_location.dart';
 import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
-enum SignupStep { name, phone, otp, password, workshopInfo, address }
+enum SignupStep { phone, otp, password }
 
 enum UserRole { driver, mechanic }
 
@@ -37,11 +33,11 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
     _initializeSteps();
     formData = {
       'email': widget.email,
-      'fullName': '',
+      // 'fullName': '',
       'phoneNumber': '',
       'otp': '',
-      'workshopName': '',
-      'workshopLocation': null,
+      // 'workshopName': '',
+      // 'workshopLocation': null,
       'password': '',
     };
   }
@@ -50,18 +46,18 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
     // Dynamic step configuration based on role
     if (widget.role == UserRole.driver) {
       steps = [
-        SignupStep.name,
+        // SignupStep.name,
         SignupStep.phone,
         SignupStep.otp,
         SignupStep.password,
       ];
     } else if (widget.role == UserRole.mechanic) {
       steps = [
-        SignupStep.name,
+        // SignupStep.name,
         SignupStep.phone,
         SignupStep.otp,
-        SignupStep.workshopInfo,
-        SignupStep.address,
+        // SignupStep.workshopInfo,
+        // SignupStep.address,
         SignupStep.password,
       ];
     }
@@ -103,10 +99,10 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => MechanicLockedDashboard(
-            fullName: formData['fullName'] as String,
+            email: formData['email'] as String,
             phoneNumber: formData['phoneNumber'] as String,
-            workshopName: formData['workshopName'] as String,
-            workshopLocation: formData['workshopLocation'] as WorkshopLocation,
+            // workshopName: formData['workshopName'] as String,
+            // workshopLocation: formData['workshopLocation'] as WorkshopLocation,
           ),
         ),
       );
@@ -162,15 +158,6 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
 
   Widget _buildStepContent(SignupStep step) {
     switch (step) {
-      case SignupStep.name:
-        return NameStepWidget(
-          email: widget.email,
-          onContinue: (fullName) {
-            _updateFormData('fullName', fullName);
-            _onContinue();
-          },
-        );
-
       case SignupStep.phone:
         return PhoneStepWidget(
           onContinue: (phoneNumber) {
@@ -188,21 +175,21 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
           },
         );
 
-      case SignupStep.workshopInfo:
-        return WorkshopInfoStepWidget(
-          onContinue: (workshopName) {
-            _updateFormData('workshopName', workshopName);
-            _onContinue();
-          },
-        );
+      // case SignupStep.workshopInfo:
+      //   return WorkshopInfoStepWidget(
+      //     onContinue: (workshopName) {
+      //       _updateFormData('workshopName', workshopName);
+      //       _onContinue();
+      //     },
+      //   );
 
-      case SignupStep.address:
-        return AddressStepWidget(
-          onContinue: (workshopLocation) {
-            _updateFormData('workshopLocation', workshopLocation);
-            _onContinue();
-          },
-        );
+      // case SignupStep.address:
+      //   return AddressStepWidget(
+      //     onContinue: (workshopLocation) {
+      //       _updateFormData('workshopLocation', workshopLocation);
+      //       _onContinue();
+      //     },
+      //   );
 
       case SignupStep.password:
         return PasswordStepWidget(

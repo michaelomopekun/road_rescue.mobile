@@ -7,17 +7,17 @@ import 'package:road_rescue/features/mechanic/widgets/workshop_address_card.dart
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
 
 class MechanicLockedDashboard extends StatefulWidget {
-  final String fullName;
+  final String email;
   final String phoneNumber;
-  final String workshopName;
-  final WorkshopLocation workshopLocation;
+  // final String workshopName;
+  // final WorkshopLocation workshopLocation;
 
   const MechanicLockedDashboard({
     super.key,
-    required this.fullName,
+    required this.email,
     required this.phoneNumber,
-    required this.workshopName,
-    required this.workshopLocation,
+    // required this.workshopName,
+    // required this.workshopLocation,
   });
 
   @override
@@ -79,22 +79,22 @@ class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
 
             // Profile Summary Section
             ProfileSummaryCard(
-              fullName: widget.fullName,
+              fullName: widget.email,
               phoneNumber: widget.phoneNumber,
             ),
 
             const SizedBox(height: 32),
 
             // Service Type Section
-            ServiceTypeCard(serviceType: widget.workshopName),
+            ServiceTypeCard(),
 
             const SizedBox(height: 32),
 
             // Workshop Address Section
             WorkshopAddressCard(
-              workshopAddress: widget.workshopLocation.formattedAddress,
-              latitude: widget.workshopLocation.latitude,
-              longitude: widget.workshopLocation.longitude,
+              // workshopAddress: widget.workshopLocation.formattedAddress,
+              // latitude: widget.workshopLocation.latitude,
+              // longitude: widget.workshopLocation.longitude,
               onEditPressed: () {
                 // TODO: Navigate to edit profile
               },

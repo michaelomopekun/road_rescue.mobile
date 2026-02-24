@@ -7,7 +7,7 @@ class ServiceTypeCard extends StatelessWidget {
 
   const ServiceTypeCard({
     super.key,
-    required this.serviceType,
+    this.serviceType = "Mechanic",
     this.description = 'Dual service capabilities selected',
   });
 

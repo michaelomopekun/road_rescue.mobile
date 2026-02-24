@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/shared/widgets/custom_text_field.dart';
 import 'package:road_rescue/shared/widgets/primary_button.dart';
-import 'package:road_rescue/theme/app_theme.dart';
+import 'package:road_rescue/shared/utils/validators.dart';
 
 class NameStepWidget extends StatefulWidget {
   final String email;
@@ -19,6 +19,8 @@ class NameStepWidget extends StatefulWidget {
 
 class _NameStepWidgetState extends State<NameStepWidget> {
   final _nameController = TextEditingController();
+  String? _errorMessage;
+  bool _isNameValid = false;
 
   @override
   void dispose() {
@@ -26,9 +28,24 @@ class _NameStepWidgetState extends State<NameStepWidget> {
     super.dispose();
   }
 
+  void _onNameChanged(String value) {
+    setState(() {
+      _errorMessage = Validators.validateName(value);
+      _isNameValid = _errorMessage == null && value.isNotEmpty;
+    });
+  }
+
   void _onContinue() {
     final fullName = _nameController.text.trim();
-    if (fullName.isEmpty) return;
+    final validationError = Validators.validateName(fullName);
+
+    if (validationError != null) {
+      setState(() {
+        _errorMessage = validationError;
+      });
+      return;
+    }
+
     widget.onContinue(fullName);
   }
 
@@ -46,13 +63,31 @@ class _NameStepWidgetState extends State<NameStepWidget> {
           controller: _nameController,
           hintText: 'Enter your full name',
           keyboardType: TextInputType.name,
+          onChanged: _onNameChanged,
         ),
+        if (_errorMessage != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _errorMessage!,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.red),
+          ),
+        ] else if (_isNameValid) ...[
+          const SizedBox(height: 8),
+          Text(
+            '✓ Name is valid',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.green),
+          ),
+        ],
         const SizedBox(height: 24),
         SizedBox(
           width: double.infinity,
           child: PrimaryButton(
             label: 'Continue',
-            onPressed: _onContinue,
+            onPressed: _isNameValid ? _onContinue : null,
             text: 'Continue',
           ),
         ),
