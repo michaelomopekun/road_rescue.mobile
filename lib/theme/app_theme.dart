@@ -4,7 +4,7 @@ import 'app_colors.dart';
 class AppTheme {
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
-    scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
+    scaffoldBackgroundColor: AppColors.backgroundScanff,
     primaryColor: AppColors.primary,
 
     colorScheme: const ColorScheme.light(

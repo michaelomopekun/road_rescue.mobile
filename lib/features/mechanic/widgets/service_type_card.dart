@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ServiceTypeCard extends StatelessWidget {
   final String serviceType;
@@ -37,13 +38,14 @@ class ServiceTypeCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+                  shape: BoxShape.rectangle,
                   color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  Icons.build_circle,
-                  color: Colors.blue[600],
-                  size: 24,
+                child: SvgPicture.asset(
+                  'assets/icons/spanner_tool.svg',
+                  width: 21.25,
+                  height: 21.25,
                 ),
               ),
               const SizedBox(width: 16),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:road_rescue/shared/widgets/primary_button.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
@@ -11,8 +12,9 @@ class VerificationBannerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.blue[100],
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.lightSecondary,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.secondaryBorder, width: 1),
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -46,16 +48,19 @@ class VerificationBannerCard extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               Container(
-                width: 80,
-                height: 80,
+                width: 119.75,
+                height: 91.27,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  // borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  Icons.description_outlined,
-                  color: Colors.grey[400],
-                  size: 40,
+                child: Transform.translate(
+                  offset: const Offset(-20, -5),
+                  child: SvgPicture.asset(
+                    'assets/icons/verification_badge.svg',
+                    width: 119.75,
+                    height: 91.27,
+                  ),
                 ),
               ),
             ],

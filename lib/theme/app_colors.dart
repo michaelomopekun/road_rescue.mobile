@@ -6,6 +6,7 @@ class AppColors {
   static const onboardingIcon = Color(0xFFBAC7CB);
   static const secondary = Color(0xFF93C5FD);
   static const background = Color(0xFFF6FCFF);
+  static const backgroundScanff = Color(0xFFEFF9FE);
 
   // static const lightPrimary = Color(0xFF93C5FD);
   static const lightSecondary = Color(0xFFD4E8FE);
@@ -27,6 +28,7 @@ class AppColors {
 
   // Borders
   static const border = Color(0xFFE2E8F0);
+  static const secondaryBorder = Color(0xFFACDBFA);
   static const backButtonBorder = Color(0xFFD4E8FE);
   static const divider = Color(0xFFCBD5E1);
 

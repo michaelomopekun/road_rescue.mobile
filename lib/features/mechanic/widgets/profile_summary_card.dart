@@ -63,7 +63,7 @@ class ProfileSummaryCard extends StatelessWidget {
                 child: Icon(
                   Icons.check_circle_outline,
                   color: Colors.blue[600],
-                  size: 24,
+                  size: 28,
                 ),
               ),
             ],
