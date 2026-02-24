@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:road_rescue/services/auth_service.dart';
+import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/theme/app_theme.dart';
 import '../../shared/widgets/app_logo.dart';
 import '../../shared/widgets/custom_text_field.dart';
@@ -19,6 +21,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
   bool _obscureText = true;
   String? _errorMessage;
   bool _isPasswordValid = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -39,7 +42,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
     });
   }
 
-  void _onContinue() {
+  void _onContinue() async {
     final password = _passwordController.text.trim();
     if (password.isEmpty) {
       setState(() {
@@ -48,7 +51,43 @@ class _PasswordScreenState extends State<PasswordScreen> {
       });
       return;
     }
-    // TODO: Handle password login
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Call login API
+      await AuthService.login(email: widget.email, password: password);
+
+      if (!mounted) return;
+
+      // Navigate to driver dashboard after successful login
+      Navigator.pushReplacementNamed(context, '/driver-dashboard');
+    } on UnauthorizedException catch (e) {
+      setState(() {
+        _errorMessage = e.message;
+        _isLoading = false;
+      });
+    } on ValidationException catch (e) {
+      setState(() {
+        _errorMessage = e.errors.join(', ');
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      setState(() {
+        _errorMessage = e.message;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'An unexpected error occurred. Please try again.';
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -116,8 +155,9 @@ class _PasswordScreenState extends State<PasswordScreen> {
               // Continue Button
               PrimaryButton(
                 text: 'Continue',
-                onPressed: _isPasswordValid ? _onContinue : null,
+                onPressed: _isPasswordValid && !_isLoading ? _onContinue : null,
                 label: '',
+                isLoading: _isLoading,
               ),
 
               const Spacer(flex: 3),

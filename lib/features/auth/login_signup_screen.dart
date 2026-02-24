@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:road_rescue/features/auth/password_screen.dart';
 import 'package:road_rescue/features/auth/role_selection_screen.dart';
 import 'package:road_rescue/features/auth/widgets/oauth_buttons.dart';
 import 'package:road_rescue/features/auth/widgets/or_divider.dart';
+import 'package:road_rescue/services/api_client.dart';
+import 'package:road_rescue/services/auth_service.dart';
 import 'package:road_rescue/shared/helper/gradient_helper.dart';
 import 'package:road_rescue/shared/widgets/app_logo.dart';
 import 'package:road_rescue/shared/widgets/custom_text_field.dart';
@@ -22,6 +25,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
   final _emailController = TextEditingController();
   String? _errorMessage;
   bool _isEmailValid = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -36,7 +40,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
     });
   }
 
-  void _onContinue() {
+  void _onContinue() async {
     final email = _emailController.text.trim();
     final validationError = Validators.validateEmail(email);
 
@@ -50,12 +54,46 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
 
     if (!mounted) return;
 
-    // TODO: Replace with actual API call to check if user exists
-    // For now, treat all new entries as new user → navigate to Role Selection
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => RoleSelectionScreen(email: email)),
-    );
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Check if email already exists
+      final emailExists = await AuthService.checkEmailExists(email);
+
+      if (!mounted) return;
+
+      if (emailExists) {
+        // Existing user → navigate to Password screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => PasswordScreen(email: email)),
+        );
+      } else {
+        // New user → navigate to Role Selection
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => RoleSelectionScreen(email: email)),
+        );
+      }
+    } on ValidationException catch (e) {
+      setState(() {
+        _errorMessage = e.errors.join(', ');
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      setState(() {
+        _errorMessage = e.message;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'An unexpected error occurred. Please try again.';
+        _isLoading = false;
+      });
+    }
   }
 
   void _onGoogleSignIn() {
@@ -119,8 +157,9 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
               // Continue Button
               PrimaryButton(
                 text: 'Continue',
-                onPressed: _isEmailValid ? _onContinue : null,
+                onPressed: _isEmailValid && !_isLoading ? _onContinue : null,
                 label: '',
+                isLoading: _isLoading,
               ),
 
               const SizedBox(height: 32),

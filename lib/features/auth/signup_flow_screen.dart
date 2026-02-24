@@ -3,6 +3,8 @@ import 'package:road_rescue/features/auth/widgets/signup_steps/phone_step_widget
 import 'package:road_rescue/features/auth/widgets/signup_steps/otp_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/password_step_widget.dart';
 import 'package:road_rescue/features/mechanic/mechanic_locked_dashboard.dart';
+import 'package:road_rescue/services/auth_service.dart';
+import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
@@ -23,6 +25,7 @@ class SignupFlowScreen extends StatefulWidget {
 class _SignupFlowScreenState extends State<SignupFlowScreen> {
   late List<SignupStep> steps;
   int currentStepIndex = 0;
+  bool _isLoading = false;
 
   // Form data
   late Map<String, dynamic> formData;
@@ -85,27 +88,62 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
 
   void _completeSignup() async {
     if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+    });
 
-    if (widget.role == UserRole.driver) {
-      // Navigate to Driver Dashboard
-      // TODO: Replace with actual DriverDashboard route
+    try {
+      final roleString = widget.role == UserRole.driver ? 'DRIVER' : 'PROVIDER';
+
+      // Call register API
+      await AuthService.register(
+        email: formData['email'] as String,
+        password: formData['password'] as String,
+        phone: formData['phoneNumber'] as String,
+        role: roleString,
+      );
+
+      if (!mounted) return;
+
+      if (widget.role == UserRole.driver) {
+        // Navigate to Driver Dashboard
+        Navigator.pushReplacementNamed(context, '/driver-dashboard');
+      } else if (widget.role == UserRole.mechanic) {
+        // Navigate to Mechanic Locked Dashboard with signup data
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MechanicLockedDashboard(
+              email: formData['email'] as String,
+              phoneNumber: formData['phoneNumber'] as String,
+            ),
+          ),
+        );
+      }
+    } on ValidationException catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Driver signup completed!')));
-      Navigator.pushReplacementNamed(context, '/driver-dashboard');
-    } else if (widget.role == UserRole.mechanic) {
-      // Navigate to Mechanic Locked Dashboard with signup data
-      Navigator.pushReplacement(
+      ).showSnackBar(SnackBar(content: Text(e.errors.join(', '))));
+      setState(() {
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
         context,
-        MaterialPageRoute(
-          builder: (_) => MechanicLockedDashboard(
-            email: formData['email'] as String,
-            phoneNumber: formData['phoneNumber'] as String,
-            // workshopName: formData['workshopName'] as String,
-            // workshopLocation: formData['workshopLocation'] as WorkshopLocation,
-          ),
-        ),
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration failed. Please try again.')),
       );
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 

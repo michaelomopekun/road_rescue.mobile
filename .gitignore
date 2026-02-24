@@ -121,3 +121,6 @@ test/.test_coverage.dart
 # Temp files
 *~
 *.tmp
+
+lib\services\AUTH_README.md
+AUTH_IMPLEMENTATION_GUIDE.md
