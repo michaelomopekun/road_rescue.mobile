@@ -101,7 +101,7 @@ class AuthService {
   /// - email: Email address to check
   ///
   /// Returns: true if email exists, false otherwise
-  static Future<bool> checkEmailExists(String email) async {
+  static Future<EmailCheckResponse> checkEmailExists(String email) async {
     try {
       final response = await ApiClient.post(
         '/auth/check-email',
@@ -110,9 +110,9 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return data['exists'] == true;
+        return EmailCheckResponse.fromJson(data);
       } else if (response.statusCode == 404) {
-        return false;
+        return EmailCheckResponse(exists: false, email: email, role: null);
       } else if (response.statusCode == 400) {
         final error = jsonDecode(response.body);
         final messages = error['message'] is List
@@ -169,12 +169,14 @@ class RegisterResponse {
 class LoginResponse {
   final String accessToken;
   final String userId;
+  final String? phone;
   final String email;
   final String role;
 
   LoginResponse({
     required this.accessToken,
     required this.userId,
+    this.phone,
     required this.email,
     required this.role,
   });
@@ -183,8 +185,25 @@ class LoginResponse {
     return LoginResponse(
       accessToken: json['accessToken'] as String,
       userId: json['userId'] as String,
+      phone: json['phone'] as String?,
       email: json['email'] as String,
       role: json['role'] as String,
+    );
+  }
+}
+
+class EmailCheckResponse {
+  final bool exists;
+  final String email;
+  final String? role;
+
+  EmailCheckResponse({required this.exists, required this.email, this.role});
+
+  factory EmailCheckResponse.fromJson(Map<String, dynamic> json) {
+    return EmailCheckResponse(
+      exists: json['exists'] as bool,
+      email: json['email'] as String,
+      role: json['role'] as String?,
     );
   }
 }

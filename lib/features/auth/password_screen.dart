@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:road_rescue/services/auth_service.dart';
 import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/theme/app_theme.dart';
+// import 'package:road_rescue/features/driver/driver_dashboard.dart';
+import 'package:road_rescue/features/mechanic/mechanic_locked_dashboard.dart';
 import '../../shared/widgets/app_logo.dart';
 import '../../shared/widgets/custom_text_field.dart';
 import '../../shared/widgets/primary_button.dart';
@@ -9,8 +11,9 @@ import '../../shared/widgets/terms_and_privacy_text.dart';
 
 class PasswordScreen extends StatefulWidget {
   final String email;
+  final String role;
 
-  const PasswordScreen({super.key, required this.email});
+  const PasswordScreen({super.key, required this.email, required this.role});
 
   @override
   State<PasswordScreen> createState() => _PasswordScreenState();
@@ -61,12 +64,33 @@ class _PasswordScreenState extends State<PasswordScreen> {
 
     try {
       // Call login API
-      await AuthService.login(email: widget.email, password: password);
+      final loginResponse = await AuthService.login(
+        email: widget.email,
+        password: password,
+      );
 
       if (!mounted) return;
 
-      // Navigate to driver dashboard after successful login
-      Navigator.pushReplacementNamed(context, '/driver-dashboard');
+      // Navigate to appropriate dashboard based on role
+      String userRole = widget.role.toUpperCase();
+
+      if (userRole == 'DRIVER') {
+        Navigator.pushReplacementNamed(context, '/driver-dashboard');
+      } else if (userRole == 'PROVIDER') {
+        // Navigate to mechanic/provider dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MechanicLockedDashboard(
+              email: loginResponse.email,
+              phoneNumber: loginResponse.phone ?? '',
+            ),
+          ),
+        );
+      } else {
+        // Default fallback
+        Navigator.pushReplacementNamed(context, '/driver-dashboard');
+      }
     } on UnauthorizedException catch (e) {
       setState(() {
         _errorMessage = e.message;

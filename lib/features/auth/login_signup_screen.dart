@@ -65,11 +65,16 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
 
       if (!mounted) return;
 
-      if (emailExists) {
+      if (emailExists.exists) {
+        String role = emailExists.role ?? '';
+
         // Existing user → navigate to Password screen
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => PasswordScreen(email: email)),
+          MaterialPageRoute(
+            builder: (_) =>
+                PasswordScreen(email: email, role: role),
+          ),
         );
       } else {
         // New user → navigate to Role Selection

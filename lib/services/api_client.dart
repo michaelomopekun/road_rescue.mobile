@@ -1,10 +1,11 @@
 import 'package:http/http.dart' as http;
 import 'package:road_rescue/services/token_service.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 
 class ApiClient {
-  static const String baseUrl =
-      'http://localhost:3438'; // TODO: Use env variable
+  static String baseUrl = "http://10.53.234.3:3438";
+  // dotenv.env['BASE_URL'] ??
 
   /// Performs a POST request with token injection
   static Future<http.Response> post(
