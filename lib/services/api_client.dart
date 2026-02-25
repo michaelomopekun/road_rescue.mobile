@@ -6,6 +6,7 @@ import 'dart:convert';
 
 class ApiClient {
   static String baseUrl = "http://10.53.234.3:3438";
+  // "localhost:3438";
   // dotenv.env['BASE_URL'] ??
 
   /// Performs a POST request with token injection

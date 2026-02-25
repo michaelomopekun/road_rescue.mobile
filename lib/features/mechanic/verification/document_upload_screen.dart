@@ -46,7 +46,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
         withData: true,
       );
 
@@ -54,37 +54,65 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
         final file = result.files.first;
         final fileBytes = file.bytes;
         final fileName = file.name;
+        final fileSize = file.size; // in bytes
 
-        if (fileBytes != null) {
-          setState(() {
-            _uploadedDocuments[_documentTypes[_currentDocumentIndex]] = (
-              fileName,
-              fileBytes,
-            );
-          });
-
+        // Validate file is not empty
+        if (fileBytes == null || fileBytes.isEmpty) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('File selected: $fileName')),
+              const SnackBar(content: Text('Error: File is empty or invalid')),
             );
           }
+          return;
+        }
+
+        // Validate minimum file size (at least 1KB)
+        if (fileSize < 1024) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'File is too small. Please select a valid document.',
+                ),
+              ),
+            );
+          }
+          return;
+        }
+
+        setState(() {
+          _uploadedDocuments[_documentTypes[_currentDocumentIndex]] = (
+            fileName,
+            fileBytes,
+          );
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'File selected: $fileName (${(fileSize / 1024).toStringAsFixed(2)} KB)',
+              ),
+            ),
+          );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking file: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
   }
 
   Future<void> _submitVerification() async {
     // Check if all documents are uploaded
-    for (var doc in _uploadedDocuments.values) {
-      if (doc == null) {
+    for (var docType in _documentTypes) {
+      final doc = _uploadedDocuments[docType];
+      if (doc == null || doc.$2.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please upload all required documents')),
+          SnackBar(content: Text('Please upload $docType document')),
         );
         return;
       }
@@ -115,8 +143,12 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
       // Step 2: Upload all documents
       for (var docType in _documentTypes) {
         final uploadedDoc = _uploadedDocuments[docType];
-        if (uploadedDoc != null) {
+        if (uploadedDoc != null && uploadedDoc.$2.isNotEmpty) {
           final (fileName, fileBytes) = uploadedDoc;
+
+          // Log for debugging
+          print('Uploading $docType: $fileName (${fileBytes.length} bytes)');
+
           await AuthService.uploadVerificationDocument(
             serviceProviderId: _serviceProviderId!,
             documentType: docType,
@@ -141,15 +173,15 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
       }
     } on ValidationException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Validation Error: ${e.toString()}')),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Verification failed: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       if (mounted) {
