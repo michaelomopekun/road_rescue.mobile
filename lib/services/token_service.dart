@@ -6,6 +6,8 @@ class TokenService {
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
   static const String _expiryKey = 'token_expiry';
+  static const String _providerIdKey = 'provider_id';
+  static const String _verificationStatusKey = 'verification_status';
 
   /// Save token and user data after successful login/signup
   static Future<void> saveToken({
@@ -106,6 +108,7 @@ class TokenService {
     await prefs.remove(_tokenKey);
     await prefs.remove(_userKey);
     await prefs.remove(_expiryKey);
+    await clearProviderData();
   }
 
   /// Refresh token validity (extend session)
@@ -119,5 +122,36 @@ class TokenService {
           .millisecondsSinceEpoch;
       await prefs.setInt(_expiryKey, expiryTime);
     }
+  }
+
+  /// Save provider ID after provider profile creation
+  static Future<void> saveProviderId(String providerId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_providerIdKey, providerId);
+  }
+
+  /// Get stored provider ID
+  static Future<String?> getProviderId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_providerIdKey);
+  }
+
+  /// Save verification status
+  static Future<void> saveVerificationStatus(String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_verificationStatusKey, status);
+  }
+
+  /// Get stored verification status
+  static Future<String?> getVerificationStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_verificationStatusKey);
+  }
+
+  /// Clear provider-related data (for logout)
+  static Future<void> clearProviderData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_providerIdKey);
+    await prefs.remove(_verificationStatusKey);
   }
 }

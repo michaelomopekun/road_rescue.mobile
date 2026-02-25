@@ -4,7 +4,7 @@ import 'package:road_rescue/features/auth/widgets/signup_steps/otp_step_widget.d
 import 'package:road_rescue/features/auth/widgets/signup_steps/password_step_widget.dart';
 import 'package:road_rescue/features/mechanic/mechanic_locked_dashboard.dart';
 import 'package:road_rescue/services/auth_service.dart';
-import 'package:road_rescue/services/api_client.dart';
+import 'package:road_rescue/services/exceptions.dart';
 import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
@@ -124,7 +124,7 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.errors.join(', '))));
+      ).showSnackBar(SnackBar(content: Text(e.messages.join(', '))));
       setState(() {
         _isLoading = false;
       });

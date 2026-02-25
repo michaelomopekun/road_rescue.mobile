@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'package:road_rescue/services/token_service.dart';
+import 'package:road_rescue/services/exceptions.dart';
 // import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 
@@ -85,6 +86,52 @@ class ApiClient {
     }
   }
 
+  /// Performs a multipart POST request with file upload
+  ///
+  /// Parameters:
+  /// - endpoint: API endpoint
+  /// - fields: Map of field names to string values
+  /// - files: Map of field names to (fileName, fileBytes) tuples
+  /// - requiresAuth: Whether to include authentication token
+  static Future<http.Response> postMultipart(
+    String endpoint, {
+    required Map<String, String> fields,
+    required Map<String, (String, List<int>)> files,
+    bool requiresAuth = true,
+  }) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+    final token = requiresAuth ? await TokenService.getToken() : null;
+
+    try {
+      final request = http.MultipartRequest('POST', url);
+
+      // Add fields
+      fields.forEach((key, value) {
+        request.fields[key] = value;
+      });
+
+      // Add files
+      files.forEach((key, fileData) {
+        final (fileName, fileBytes) = fileData;
+        request.files.add(
+          http.MultipartFile.fromBytes(key, fileBytes, filename: fileName),
+        );
+      });
+
+      // Add headers
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await request.send().timeout(
+        const Duration(seconds: 30),
+      );
+      return await http.Response.fromStream(response);
+    } catch (e) {
+      throw ApiException('Network error: ${e.toString()}');
+    }
+  }
+
   /// Get headers with optional authorization
   static Future<Map<String, String>> _getHeaders(bool requiresAuth) async {
     final headers = {
@@ -102,31 +149,4 @@ class ApiClient {
 
     return headers;
   }
-}
-
-/// Custom exception for API errors
-class ApiException implements Exception {
-  final String message;
-  ApiException(this.message);
-
-  @override
-  String toString() => 'ApiException: $message';
-}
-
-/// Exception for unauthorized access
-class UnauthorizedException implements Exception {
-  final String message;
-  UnauthorizedException(this.message);
-
-  @override
-  String toString() => 'UnauthorizedException: $message';
-}
-
-/// Exception for validation errors
-class ValidationException implements Exception {
-  final List<String> errors;
-  ValidationException(this.errors);
-
-  @override
-  String toString() => 'ValidationException: ${errors.join(', ')}';
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/services/auth_service.dart';
-import 'package:road_rescue/services/api_client.dart';
+import 'package:road_rescue/services/exceptions.dart';
 import 'package:road_rescue/theme/app_theme.dart';
 // import 'package:road_rescue/features/driver/driver_dashboard.dart';
 import 'package:road_rescue/features/mechanic/mechanic_locked_dashboard.dart';
@@ -98,7 +98,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
       });
     } on ValidationException catch (e) {
       setState(() {
-        _errorMessage = e.errors.join(', ');
+        _errorMessage = e.messages.join(', ');
         _isLoading = false;
       });
     } on ApiException catch (e) {

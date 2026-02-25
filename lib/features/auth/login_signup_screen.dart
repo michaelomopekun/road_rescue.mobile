@@ -4,8 +4,8 @@ import 'package:road_rescue/features/auth/password_screen.dart';
 import 'package:road_rescue/features/auth/role_selection_screen.dart';
 import 'package:road_rescue/features/auth/widgets/oauth_buttons.dart';
 import 'package:road_rescue/features/auth/widgets/or_divider.dart';
-import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/services/auth_service.dart';
+import 'package:road_rescue/services/exceptions.dart';
 import 'package:road_rescue/shared/helper/gradient_helper.dart';
 import 'package:road_rescue/shared/widgets/app_logo.dart';
 import 'package:road_rescue/shared/widgets/custom_text_field.dart';
@@ -72,8 +72,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                PasswordScreen(email: email, role: role),
+            builder: (_) => PasswordScreen(email: email, role: role),
           ),
         );
       } else {
@@ -85,7 +84,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
       }
     } on ValidationException catch (e) {
       setState(() {
-        _errorMessage = e.errors.join(', ');
+        _errorMessage = e.messages.join(', ');
         _isLoading = false;
       });
     } on ApiException catch (e) {
