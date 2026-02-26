@@ -29,8 +29,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: FutureBuilder<bool>(
-        future: TokenService.isAuthenticated(),
+      home: FutureBuilder<AuthData?>(
+        future: TokenService.getAuthData(),
         builder: (context, snapshot) {
           // While checking authentication status
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -39,9 +39,24 @@ class MyApp extends StatelessWidget {
             );
           }
 
-          // If user is authenticated, show dashboard
-          if (snapshot.hasData && snapshot.data == true) {
-            return const DashboardPlaceholder(); // TODO: Replace with actual dashboard
+          // If user is authenticated, show appropriate dashboard based on role
+          if (snapshot.hasData && snapshot.data != null) {
+            final authData = snapshot.data!;
+
+            // Route to appropriate dashboard based on user role
+            if (authData.role == 'mechanic') {
+              return FutureBuilder<String?>(
+                future: TokenService.getUserEmail(),
+                builder: (context, emailSnapshot) {
+                  return MechanicLockedDashboard(
+                    email: emailSnapshot.data ?? 'user@example.com',
+                    phoneNumber: '', // Will be updated from dashboard logic
+                  );
+                },
+              );
+            } else if (authData.role == 'driver') {
+              return const DashboardPlaceholder(); // TODO: Replace with driver dashboard
+            }
           }
 
           // If not authenticated, show login/onboarding

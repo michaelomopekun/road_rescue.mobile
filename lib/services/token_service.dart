@@ -104,11 +104,7 @@ class TokenService {
 
   /// Clear token and user data (logout)
   static Future<void> clearToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userKey);
-    await prefs.remove(_expiryKey);
-    await clearProviderData();
+    await clearAuthData();
   }
 
   /// Refresh token validity (extend session)
@@ -154,4 +150,68 @@ class TokenService {
     await prefs.remove(_providerIdKey);
     await prefs.remove(_verificationStatusKey);
   }
+
+  /// Atomically save authentication data (token + user data + role)
+  /// This ensures token and role are always in sync
+  static Future<void> saveAuthData({
+    required String token,
+    required Map<String, dynamic> userData,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Save both or nothing - atomic operation
+    await Future.wait([
+      prefs.setString(_tokenKey, token),
+      prefs.setString(_userKey, jsonEncode(userData)),
+      prefs.setInt(
+        _expiryKey,
+        DateTime.now().add(const Duration(hours: 12)).millisecondsSinceEpoch,
+      ),
+    ]);
+  }
+
+  /// Atomically clear all authentication data (token + user data + role)
+  /// This ensures token and role are always cleared together
+  static Future<void> clearAuthData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Remove all or nothing - atomic operation
+    await Future.wait([
+      prefs.remove(_tokenKey),
+      prefs.remove(_userKey),
+      prefs.remove(_expiryKey),
+      prefs.remove(_providerIdKey),
+      prefs.remove(_verificationStatusKey),
+    ]);
+  }
+
+  /// Retrieve auth data with defensive check
+  /// Returns null if token exists but role doesn't (or vice versa)
+  /// This prevents mismatched states during app reload
+  static Future<AuthData?> getAuthData() async {
+    final token = await getToken();
+    final role = await getUserRole();
+
+    // If one exists but not the other, something is wrong - clear both
+    if ((token != null && role == null) || (token == null && role != null)) {
+      // Mismatch detected - clear everything to recover
+      await clearAuthData();
+      return null;
+    }
+
+    // Both exist or both are null - state is consistent
+    if (token != null && role != null) {
+      return AuthData(token: token, role: role);
+    }
+
+    return null;
+  }
+}
+
+/// Model for atomic auth data retrieval
+class AuthData {
+  final String token;
+  final String role;
+
+  AuthData({required this.token, required this.role});
 }
