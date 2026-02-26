@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/shared/widgets/custom_text_field.dart';
 import 'package:road_rescue/shared/widgets/primary_button.dart';
+import 'package:road_rescue/theme/app_theme.dart';
 
 class WorkshopInfoStepWidget extends StatefulWidget {
   final Function(String) onContinue;
@@ -33,7 +34,10 @@ class _WorkshopInfoStepWidgetState extends State<WorkshopInfoStepWidget> {
       children: [
         Text(
           "What's your workshop name?",
-          style: Theme.of(context).textTheme.headlineMedium,
+          style: AppTheme.lightTheme.textTheme.headlineMedium?.copyWith(
+            fontSize: 40,
+            fontWeight: FontWeight.w900,
+          ),
         ),
         const SizedBox(height: 32),
         CustomTextField(

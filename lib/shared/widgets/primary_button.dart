@@ -7,6 +7,7 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String label;
   final bool isLoading;
+  final bool? isPending;
 
   const PrimaryButton({
     super.key,
@@ -14,6 +15,7 @@ class PrimaryButton extends StatelessWidget {
     this.onPressed,
     required this.label,
     this.isLoading = false,
+    this.isPending = false,
   });
 
   @override
@@ -30,7 +32,9 @@ class PrimaryButton extends StatelessWidget {
           foregroundColor: Colors.white,
           elevation: isEnabled ? 0 : 0,
           disabledBackgroundColor: Colors.grey[400],
-          disabledForegroundColor: Colors.grey[600],
+          disabledForegroundColor: isPending == true
+              ? AppColors.warning
+              : Colors.grey[400],
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

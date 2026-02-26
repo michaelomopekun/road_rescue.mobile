@@ -6,6 +6,8 @@ import 'package:road_rescue/services/auth_service.dart';
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/exceptions.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:road_rescue/theme/app_colors.dart';
+import 'package:road_rescue/theme/app_theme.dart';
 
 class DocumentUploadScreen extends StatefulWidget {
   final String businessName;
@@ -196,29 +198,34 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 48),
+
             // Progress Indicator (Step 3/3)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Row(
-                children: List.generate(
-                  3,
-                  (index) => Expanded(
-                    child: Container(
-                      height: 4,
-                      margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(2),
-                        color: Colors.teal[700],
-                      ),
+            Row(
+              children: List.generate(
+                3,
+                (index) => Expanded(
+                  child: Container(
+                    height: 4,
+                    margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(2),
+                      color: Colors.teal[700],
                     ),
                   ),
                 ),
               ),
             ),
+
+            const SizedBox(height: 40),
+
             // Title and Description
             Text(
               'Select a Document Type',
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: AppTheme.lightTheme.textTheme.headlineMedium?.copyWith(
+                fontSize: 30,
+                fontWeight: FontWeight.w900,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -268,9 +275,13 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
               GestureDetector(
                 onTap: _isUploading ? null : _pickFile,
                 child: Container(
-                  height: 200,
+                  height: 332,
+                  width: double.infinity,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!, width: 2),
+                    border: Border.all(
+                      color: AppColors.secondaryBorder,
+                      width: 2,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                     color: Colors.grey[50],
                   ),

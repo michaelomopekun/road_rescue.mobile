@@ -46,7 +46,7 @@ class VerificationBannerCard extends StatelessWidget {
         color: isVerified ? Colors.green[50] : AppColors.lightSecondary,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isVerified ? Colors.green[200]! : AppColors.secondaryBorder,
+          color: isVerified ? AppColors.success : AppColors.secondaryBorder,
           width: 1,
         ),
       ),
@@ -66,6 +66,7 @@ class VerificationBannerCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(
                             fontWeight: FontWeight.w900,
+                            fontSize: 25,
                             color: isVerified
                                 ? Colors.green[700]
                                 : AppColors.textPrimary,
@@ -75,6 +76,8 @@ class VerificationBannerCard extends StatelessWidget {
                     Text(
                       _bannerSubtitle,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                         color: isVerified
                             ? Colors.green[600]
                             : Colors.grey[700],
@@ -115,6 +118,7 @@ class VerificationBannerCard extends StatelessWidget {
               child: PrimaryButton(
                 text: isPending ? 'Verification Pending' : 'Verify Account',
                 label: isPending ? 'Verification Pending' : 'Verify Account',
+                isPending: isPending,
                 onPressed: isPending ? null : onVerifyPressed,
               ),
             ),

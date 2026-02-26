@@ -20,6 +20,11 @@ class AppTheme {
         fontWeight: FontWeight.w900,
         color: AppColors.textPrimary,
       ),
+      headlineSmall: TextStyle(
+        fontSize: 40,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textPrimary,
+      ),
       titleMedium: TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.w900,

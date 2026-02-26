@@ -32,25 +32,27 @@ class _AddressStepScreenState extends State<AddressStepScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(height: 48),
+
             // Progress Indicator (Step 2/3)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Row(
-                children: List.generate(
-                  3,
-                  (index) => Expanded(
-                    child: Container(
-                      height: 4,
-                      margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(2),
-                        color: index < 1 ? Colors.teal[700] : Colors.grey[300],
-                      ),
+            Row(
+              children: List.generate(
+                3,
+                (index) => Expanded(
+                  child: Container(
+                    height: 4,
+                    margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(2),
+                      color: index < 1 ? Colors.teal[700] : Colors.grey[300],
                     ),
                   ),
                 ),
               ),
             ),
+
+            const SizedBox(height: 129),
+
             AddressStepWidget(
               onContinue: (workshopLocation) {
                 Navigator.of(context).push(

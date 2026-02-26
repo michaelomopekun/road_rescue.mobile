@@ -5,6 +5,8 @@ import 'package:road_rescue/shared/widgets/custom_text_field.dart';
 import 'package:road_rescue/shared/widgets/primary_button.dart';
 import 'dart:async';
 
+import 'package:road_rescue/theme/app_theme.dart';
+
 class AddressStepWidget extends StatefulWidget {
   final Function(WorkshopLocation) onContinue;
 
@@ -217,7 +219,10 @@ class _AddressStepWidgetState extends State<AddressStepWidget> {
       children: [
         Text(
           'Select workshop address?',
-          style: Theme.of(context).textTheme.headlineMedium,
+          style: AppTheme.lightTheme.textTheme.headlineMedium?.copyWith(
+            fontSize: 40,
+            fontWeight: FontWeight.w900,
+          ),
         ),
         const SizedBox(height: 32),
 

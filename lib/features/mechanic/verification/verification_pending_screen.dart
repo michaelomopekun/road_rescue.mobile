@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/shared/widgets/primary_button.dart';
+import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 
 class VerificationPendingScreen extends StatelessWidget {
   final String? serviceProviderId;
@@ -10,17 +11,9 @@ class VerificationPendingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: GestureDetector(
-          onTap: () =>
+        leading: CustomBackButton(
+          onPressed: () =>
               Navigator.of(context).pushReplacementNamed('/mechanic-dashboard'),
-          child: Container(
-            margin: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.grey[200],
-            ),
-            child: Icon(Icons.arrow_back, color: Colors.grey[700]),
-          ),
         ),
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -31,6 +24,8 @@ class VerificationPendingScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // const SizedBox(height: 83),
+
               // Hourglass Icon
               Container(
                 width: 120,
@@ -45,6 +40,7 @@ class VerificationPendingScreen extends StatelessWidget {
                   color: Colors.blue[600],
                 ),
               ),
+
               const SizedBox(height: 40),
 
               // Verification Pending Title
@@ -55,7 +51,7 @@ class VerificationPendingScreen extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 46),
 
               // Explanation Text
               Text(
@@ -66,7 +62,7 @@ class VerificationPendingScreen extends StatelessWidget {
                   height: 1.6,
                 ),
               ),
-              const SizedBox(height: 60),
+              const SizedBox(height: 188),
 
               // Back to Home Button
               SizedBox(

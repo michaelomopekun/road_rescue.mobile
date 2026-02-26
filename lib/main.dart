@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/services/token_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/auth/login_signup_screen.dart';
 import 'features/mechanic/mechanic_locked_dashboard.dart';
@@ -12,9 +12,9 @@ import 'features/mechanic/verification/verification_pending_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
-  // await dotenv.load(fileName: '.env');
-  const bool onboardingComplete = false;
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
 
   runApp(MyApp(onboardingComplete: onboardingComplete));
 }
