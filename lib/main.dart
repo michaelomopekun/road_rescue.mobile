@@ -46,11 +46,31 @@ class MyApp extends StatelessWidget {
             // Route to appropriate dashboard based on user role
             if (authData.role == 'mechanic') {
               return FutureBuilder<String?>(
-                future: TokenService.getUserEmail(),
-                builder: (context, emailSnapshot) {
-                  return MechanicLockedDashboard(
-                    email: emailSnapshot.data ?? 'user@example.com',
-                    phoneNumber: '', // Will be updated from dashboard logic
+                future: TokenService.getVerificationStatus(),
+                builder: (context, statusSnapshot) {
+                  final status = statusSnapshot.data;
+
+                  // If approved, show full dashboard (placeholder)
+                  if (status == 'approved') {
+                    return Scaffold(
+                      appBar: AppBar(
+                        title: const Text('Full Mechanic Dashboard'),
+                      ),
+                      body: const Center(
+                        child: Text('Full Mechanic Dashboard - Coming Soon'),
+                      ),
+                    );
+                  }
+
+                  // Otherwise show locked dashboard
+                  return FutureBuilder<String?>(
+                    future: TokenService.getUserEmail(),
+                    builder: (context, emailSnapshot) {
+                      return MechanicLockedDashboard(
+                        email: emailSnapshot.data ?? 'user@example.com',
+                        phoneNumber: '', // Will be updated from dashboard logic
+                      );
+                    },
                   );
                 },
               );

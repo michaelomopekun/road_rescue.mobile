@@ -79,6 +79,24 @@ class AuthService {
           },
         );
 
+        // If mechanic, fetch verification status
+        if (loginResponse.role == 'mechanic') {
+          try {
+            // Fetch verification status using userId
+            final statusResponse = await getVerificationStatus(
+              providerId: loginResponse.userId,
+            );
+            // Save the verification status
+            await TokenService.saveVerificationStatus(
+              statusResponse.verificationStatus,
+            );
+          } catch (e) {
+            // If status check fails, assume NOT_VERIFIED for new mechanics
+            print('Error fetching verification status: $e');
+            await TokenService.saveVerificationStatus('NOT_VERIFIED');
+          }
+        }
+
         return loginResponse;
       } else if (response.statusCode == 401) {
         throw UnauthorizedException('Invalid email or password');
