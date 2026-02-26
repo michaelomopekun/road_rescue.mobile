@@ -103,6 +103,10 @@ class ApiClient {
     final url = Uri.parse('$baseUrl$endpoint');
     final token = requiresAuth ? await TokenService.getToken() : null;
 
+    if (token == null && requiresAuth) {
+      throw UnauthorizedException('No token found. Please login again.');
+    }
+
     try {
       final request = http.MultipartRequest('POST', url);
 
@@ -111,15 +115,40 @@ class ApiClient {
         request.fields[key] = value;
       });
 
-      // Add files
+      // Add files with proper content type
       files.forEach((key, fileData) {
         final (fileName, fileBytes) = fileData;
+
+        // Determine content type based on file extension
+        String contentType = 'application/octet-stream';
+        if (fileName.endsWith('.pdf')) {
+          contentType = 'application/pdf';
+        } else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+          contentType = 'image/jpeg';
+        } else if (fileName.endsWith('.png')) {
+          contentType = 'image/png';
+        } else if (fileName.endsWith('.doc')) {
+          contentType = 'application/msword';
+        } else if (fileName.endsWith('.docx')) {
+          contentType =
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        }
+
+        print(
+          'Adding file: $key = $fileName (${fileBytes.length} bytes, type: $contentType)',
+        );
+
         request.files.add(
-          http.MultipartFile.fromBytes(key, fileBytes, filename: fileName),
+          http.MultipartFile.fromBytes(
+            key,
+            fileBytes,
+            filename: fileName,
+            contentType: http.MediaType.parse(contentType),
+          ),
         );
       });
 
-      // Add headers
+      // Add authorization header
       if (token != null) {
         request.headers['Authorization'] = 'Bearer $token';
       }
@@ -127,7 +156,12 @@ class ApiClient {
       final response = await request.send().timeout(
         const Duration(seconds: 30),
       );
-      return await http.Response.fromStream(response);
+
+      final responseBody = await http.Response.fromStream(response);
+      print('Multipart response status: ${responseBody.statusCode}');
+      print('Multipart response body: ${responseBody.body}');
+
+      return responseBody;
     } catch (e) {
       throw ApiException('Network error: ${e.toString()}');
     }

@@ -4,6 +4,11 @@ import 'theme/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/auth/login_signup_screen.dart';
+import 'features/mechanic/mechanic_locked_dashboard.dart';
+import 'features/mechanic/verification/business_info_screen.dart';
+import 'features/mechanic/verification/address_step_screen.dart';
+import 'features/mechanic/verification/document_upload_screen.dart';
+import 'features/mechanic/verification/verification_pending_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +50,52 @@ class MyApp extends StatelessWidget {
               : const OnboardingScreen();
         },
       ),
+      routes: {
+        '/login': (context) => const LoginSignupScreen(),
+        '/onboarding': (context) => const OnboardingScreen(),
+        '/mechanic-dashboard': (context) {
+          final args =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>?;
+          return MechanicLockedDashboard(
+            email: args?['email'] ?? 'user@example.com',
+            phoneNumber: args?['phoneNumber'] ?? '',
+          );
+        },
+        '/business-info': (context) {
+          final args =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>?;
+          return BusinessInfoScreen(phoneNumber: args?['phoneNumber'] ?? '');
+        },
+        '/address-info': (context) {
+          final args =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>?;
+          return AddressStepScreen(
+            businessName: args?['businessName'] ?? '',
+            phoneNumber: args?['phoneNumber'] ?? '',
+          );
+        },
+        '/document-upload': (context) {
+          final args =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>?;
+          return DocumentUploadScreen(
+            businessName: args?['businessName'] ?? '',
+            workshopLocation: args?['workshopLocation'],
+            phoneNumber: args?['phoneNumber'] ?? '',
+          );
+        },
+        '/verification-pending': (context) {
+          final args =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>?;
+          return VerificationPendingScreen(
+            serviceProviderId: args?['serviceProviderId'] ?? '',
+          );
+        },
+      },
     );
   }
 }

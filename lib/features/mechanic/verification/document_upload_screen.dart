@@ -23,24 +23,11 @@ class DocumentUploadScreen extends StatefulWidget {
 }
 
 class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
-  final List<String> _documentTypes = ['RC', 'Certification', 'ID'];
-  int _currentDocumentIndex = 0;
-  final Map<String, (String fileName, List<int> bytes)?> _uploadedDocuments =
-      {};
+  final List<String> _documentTypes = ['RC', 'CERTIFICATION', 'ID'];
+  String? _selectedDocumentType;
+  (String fileName, List<int> bytes)? _uploadedDocument;
   bool _isUploading = false;
   String? _serviceProviderId;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeDocumentTypes();
-  }
-
-  void _initializeDocumentTypes() {
-    for (var docType in _documentTypes) {
-      _uploadedDocuments[docType] = null;
-    }
-  }
 
   Future<void> _pickFile() async {
     try {
@@ -81,10 +68,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
         }
 
         setState(() {
-          _uploadedDocuments[_documentTypes[_currentDocumentIndex]] = (
-            fileName,
-            fileBytes,
-          );
+          _uploadedDocument = (fileName, fileBytes);
         });
 
         if (mounted) {
@@ -107,15 +91,24 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   }
 
   Future<void> _submitVerification() async {
-    // Check if all documents are uploaded
-    for (var docType in _documentTypes) {
-      final doc = _uploadedDocuments[docType];
-      if (doc == null || doc.$2.isEmpty) {
+    // Validate document type selected
+    if (_selectedDocumentType == null) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please upload $docType document')),
+          const SnackBar(content: Text('Please select a document type')),
         );
-        return;
       }
+      return;
+    }
+
+    // Validate document uploaded
+    if (_uploadedDocument == null || _uploadedDocument!.$2.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please upload a document')),
+        );
+      }
+      return;
     }
 
     setState(() {
@@ -140,25 +133,22 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
 
       _serviceProviderId = profileResponse.id;
 
-      // Step 2: Upload all documents
-      for (var docType in _documentTypes) {
-        final uploadedDoc = _uploadedDocuments[docType];
-        if (uploadedDoc != null && uploadedDoc.$2.isNotEmpty) {
-          final (fileName, fileBytes) = uploadedDoc;
+      // Step 2: Upload the selected document
+      final (fileName, fileBytes) = _uploadedDocument!;
 
-          // Log for debugging
-          print('Uploading $docType: $fileName (${fileBytes.length} bytes)');
+      // Log for debugging
+      print(
+        'Uploading $_selectedDocumentType: $fileName (${fileBytes.length} bytes)',
+      );
 
-          await AuthService.uploadVerificationDocument(
-            serviceProviderId: _serviceProviderId!,
-            documentType: docType,
-            documentNumber:
-                'DOC_${docType}_${DateTime.now().millisecondsSinceEpoch}',
-            fileBytes: fileBytes,
-            fileName: fileName,
-          );
-        }
-      }
+      await AuthService.uploadVerificationDocument(
+        serviceProviderId: _serviceProviderId!,
+        documentType: _selectedDocumentType!,
+        documentNumber:
+            'DOC_${_selectedDocumentType}_${DateTime.now().millisecondsSinceEpoch}',
+        fileBytes: fileBytes,
+        fileName: fileName,
+      );
 
       // Step 3: Save provider ID and verification status
       await TokenService.saveProviderId(_serviceProviderId!);
@@ -192,22 +182,6 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
     }
   }
 
-  void _goToNextDocument() {
-    if (_currentDocumentIndex < _documentTypes.length - 1) {
-      setState(() {
-        _currentDocumentIndex++;
-      });
-    } else {
-      // All documents collected, submit
-      _submitVerification();
-    }
-  }
-
-  String get _currentDocumentType => _documentTypes[_currentDocumentIndex];
-
-  bool get _isCurrentDocumentUploaded =>
-      _uploadedDocuments[_currentDocumentType] != null;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -231,149 +205,161 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Step Indicator
-            Padding(
-              padding: const EdgeInsets.only(bottom: 32),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _documentTypes.length,
-                  (index) => Row(
+            // Title and Description
+            Text(
+              'Select a Document Type',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Choose one of the following documents to verify your account.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 32),
+
+            // Document Type Selection
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _documentTypes.map((docType) {
+                final isSelected = _selectedDocumentType == docType;
+                return FilterChip(
+                  label: Text(docType),
+                  selected: isSelected,
+                  onSelected: _uploadedDocument == null
+                      ? (selected) {
+                          setState(() {
+                            _selectedDocumentType = selected ? docType : null;
+                          });
+                        }
+                      : null, // Disable selection after upload
+                  backgroundColor: Colors.grey[100],
+                  selectedColor: Colors.teal[100],
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.teal[700] : Colors.black,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 32),
+
+            // Upload Area (shown when document type selected)
+            if (_selectedDocumentType != null) ...[
+              Text(
+                'Upload ${_selectedDocumentType!}',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: _isUploading ? null : _pickFile,
+                child: Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!, width: 2),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.grey[50],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: index <= _currentDocumentIndex
-                              ? Colors.teal[700]
-                              : Colors.grey[300],
-                        ),
-                      ),
-                      if (index < _documentTypes.length - 1)
-                        Container(
-                          width: 30,
-                          height: 2,
-                          color: index < _currentDocumentIndex
-                              ? Colors.teal[700]
-                              : Colors.grey[300],
+                      if (_uploadedDocument != null)
+                        Column(
+                          children: [
+                            Icon(
+                              Icons.check_circle,
+                              size: 64,
+                              color: Colors.green[600],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Document Uploaded',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Colors.green[700],
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _uploadedDocument!.$1,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Colors.green[600]),
+                            ),
+                          ],
+                        )
+                      else
+                        Column(
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.blue[100],
+                              ),
+                              child: Icon(
+                                Icons.cloud_upload_outlined,
+                                size: 32,
+                                color: Colors.blue[600],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Tap to upload your\n${_selectedDocumentType?.toLowerCase()}',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
                     ],
                   ),
                 ),
               ),
-            ),
-
-            // Document Type Label
-            Text(
-              _currentDocumentType,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Upload a photo or scan of your ${_currentDocumentType.toLowerCase()}.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 24),
-
-            // Choose Different Document Link
-            GestureDetector(
-              onTap: _pickFile,
-              child: Text(
-                'Choose a different document',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.teal[700],
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Upload Area
-            GestureDetector(
-              onTap: _pickFile,
-              child: Container(
-                height: 250,
+            ] else ...[
+              Container(
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!, width: 2),
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.grey[50],
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[200]!),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Row(
                   children: [
-                    if (_isCurrentDocumentUploaded)
-                      Column(
-                        children: [
-                          Icon(
-                            Icons.check_circle,
-                            size: 64,
-                            color: Colors.green[600],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Document Uploaded',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Colors.green[700],
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _uploadedDocuments[_currentDocumentType]!.$1,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: Colors.green[600]),
-                          ),
-                        ],
-                      )
-                    else
-                      Column(
-                        children: [
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.blue[100],
-                            ),
-                            child: Icon(
-                              Icons.cloud_upload_outlined,
-                              size: 32,
-                              color: Colors.blue[600],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Upload the front side of\nyour document',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        ],
+                    Icon(Icons.info_outline, color: Colors.blue[700]),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Select a document type above to start.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.blue[700],
+                        ),
                       ),
+                    ),
                   ],
                 ),
               ),
-            ),
+            ],
             const SizedBox(height: 40),
 
-            // Continue Button
+            // Submit Button
             SizedBox(
               width: double.infinity,
               child: PrimaryButton(
-                label: _currentDocumentIndex == _documentTypes.length - 1
-                    ? 'Submit'
-                    : 'Continue',
-                text: _currentDocumentIndex == _documentTypes.length - 1
-                    ? 'Submit'
-                    : 'Continue',
-                onPressed: _isUploading || !_isCurrentDocumentUploaded
+                label: 'Submit',
+                text: 'Submit',
+                onPressed:
+                    _isUploading ||
+                        _selectedDocumentType == null ||
+                        _uploadedDocument == null
                     ? null
-                    : _goToNextDocument,
+                    : _submitVerification,
               ),
             ),
           ],

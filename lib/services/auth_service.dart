@@ -234,6 +234,7 @@ class AuthService {
                 (error['message'] as List).map((e) => e.toString()),
               )
             : [error['message']?.toString() ?? 'Validation error'];
+        print('Upload document validation error: $messages');
         throw ValidationException(messages);
       } else if (response.statusCode == 404) {
         throw NotFoundException('Provider not found');
