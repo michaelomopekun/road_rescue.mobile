@@ -81,6 +81,10 @@ class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
         });
   }
 
+  Future<void> _refreshDashboard() async {
+    await _loadVerificationStatus();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -104,9 +108,13 @@ class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Open search
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              // Logout: clear auth data and navigate to login
+              await TokenService.clearAuthData();
+              if (mounted) {
+                Navigator.of(context).pushReplacementNamed('/login');
+              }
             },
           ),
           IconButton(
@@ -120,44 +128,47 @@ class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Verification Banner
-            VerificationBannerCard(
-              onVerifyPressed: _navigateToVerification,
-              verificationStatus: _verificationStatus,
-            ),
+      body: RefreshIndicator(
+        onRefresh: _refreshDashboard,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Verification Banner
+              VerificationBannerCard(
+                onVerifyPressed: _navigateToVerification,
+                verificationStatus: _verificationStatus,
+              ),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            // Profile Summary Section
-            ProfileSummaryCard(
-              fullName: widget.email,
-              phoneNumber: widget.phoneNumber,
-            ),
+              // Profile Summary Section
+              ProfileSummaryCard(
+                fullName: widget.email,
+                phoneNumber: widget.phoneNumber,
+              ),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            // Service Type Section
-            ServiceTypeCard(),
+              // Service Type Section
+              ServiceTypeCard(),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            // Workshop Address Section
-            WorkshopAddressCard(
-              // workshopAddress: widget.workshopLocation.formattedAddress,
-              // latitude: widget.workshopLocation.latitude,
-              // longitude: widget.workshopLocation.longitude,
-              onEditPressed: () {
-                // TODO: Navigate to edit profile
-              },
-            ),
+              // Workshop Address Section
+              WorkshopAddressCard(
+                // workshopAddress: widget.workshopLocation.formattedAddress,
+                // latitude: widget.workshopLocation.latitude,
+                // longitude: widget.workshopLocation.longitude,
+                onEditPressed: () {
+                  // TODO: Navigate to edit profile
+                },
+              ),
 
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: DashboardBottomNavBar(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/workshop_info_step_widget.dart';
 import 'package:road_rescue/features/mechanic/verification/address_step_screen.dart';
+import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 
 class BusinessInfoScreen extends StatefulWidget {
   final String phoneNumber;
@@ -18,34 +19,48 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: Container(
-            margin: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.grey[200],
-            ),
-            child: Icon(Icons.arrow_back, color: Colors.grey[700]),
-          ),
-        ),
+        leading: CustomBackButton(onPressed: () => Navigator.of(context).pop()),
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: WorkshopInfoStepWidget(
-          onContinue: (businessName) {
-            _businessName = businessName;
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => AddressStepScreen(
-                  businessName: _businessName,
-                  phoneNumber: widget.phoneNumber,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Progress Indicator (Step 1/3)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Row(
+                children: List.generate(
+                  3,
+                  (index) => Expanded(
+                    child: Container(
+                      height: 4,
+                      margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(2),
+                        color: index == 0 ? Colors.teal[700] : Colors.grey[300],
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            );
-          },
+            ),
+            WorkshopInfoStepWidget(
+              onContinue: (businessName) {
+                _businessName = businessName;
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => AddressStepScreen(
+                      businessName: _businessName,
+                      phoneNumber: widget.phoneNumber,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
