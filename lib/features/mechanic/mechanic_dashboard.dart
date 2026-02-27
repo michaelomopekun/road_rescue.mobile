@@ -45,36 +45,40 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
       final providerId = await TokenService.getProviderId() ?? userId;
 
       if (providerId != null && !_disposed) {
+        // Set mechanic name early
         if (!_disposed && mounted) {
           setState(() {
             _mechanicName = userData?['name'] as String? ?? 'Mechanic';
           });
         }
 
-        // Fetch verification status and request history from real API
+        // Load all dashboard data in parallel (OPTIMIZED)
         try {
-          final verificationStatus =
-              await MechanicService.getVerificationStatus(providerId);
-          final requestHistory = await MechanicService.getRequestHistory();
+          print('[MechanicDashboard] Starting parallel dashboard data load...');
+          final dashboardData = await MechanicService.getProviderDashboardData(
+            providerId,
+          );
 
           if (!_disposed && mounted) {
             setState(() {
-              _currentEarnings = 1200.0; // TODO: Get from earnings endpoint
-              _currentJobCount = requestHistory.length;
-              _recentJobs = requestHistory;
-              _isAvailable =
-                  verificationStatus.availabilityStatus == 'AVAILABLE';
+              // Update UI with all fetched data
+              _recentJobs = dashboardData.recentJobs;
+              _currentJobCount = dashboardData.jobCount;
+              _currentEarnings = dashboardData.totalEarnings;
+              _isAvailable = dashboardData.isAvailable;
             });
+            print('[MechanicDashboard] Dashboard data loaded successfully');
           }
         } catch (e) {
-          print('Error loading dashboard data: $e');
+          print('[MechanicDashboard] Error loading dashboard data: $e');
+          // Fallback to mock data on error
           if (!_disposed && mounted) {
             _loadMockData();
           }
         }
       }
     } catch (e) {
-      print('Error loading mechanic ID: $e');
+      print('[MechanicDashboard] Error loading mechanic ID: $e');
     } finally {
       if (!_disposed && mounted) {
         setState(() {
