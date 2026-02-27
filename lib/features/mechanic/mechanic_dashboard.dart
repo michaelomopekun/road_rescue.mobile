@@ -52,9 +52,10 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
           });
         }
 
-        // Load all dashboard data in parallel (OPTIMIZED)
+        // Load all dashboard data using aggregated endpoint
         try {
-          print('[MechanicDashboard] Starting parallel dashboard data load...');
+          print('[MechanicDashboard] Starting dashboard data load...');
+          // No need to pass providerId - endpoint uses authenticated user (/providers/me/dashboard)
           final dashboardData = await MechanicService.getProviderDashboardData(
             providerId,
           );
@@ -66,6 +67,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
               _currentJobCount = dashboardData.jobCount;
               _currentEarnings = dashboardData.totalEarnings;
               _isAvailable = dashboardData.isAvailable;
+              _mechanicName = dashboardData.businessName;
             });
             print('[MechanicDashboard] Dashboard data loaded successfully');
           }
@@ -424,6 +426,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
               ),
               const SizedBox(height: 12),
               Container(
+                width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(14),

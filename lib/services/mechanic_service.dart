@@ -182,31 +182,56 @@ class MechanicService {
     }
   }
 
-  /// Get provider dashboard data (EFFICIENT PARALLEL LOADING)
-  /// Fetches verification status, request history, and earnings simultaneously
-  /// This is much faster than sequential requests (~3x faster)
+  /// Get provider dashboard data (SINGLE AGGREGATED ENDPOINT)
+  /// Fetches all dashboard data in one request: profile, verification, earnings, recent jobs
+  /// This is the most efficient approach (~1 request instead of 3)
   static Future<ProviderDashboardData> getProviderDashboardData(
     String providerId,
   ) async {
     try {
-      print('[MechanicService] Loading provider dashboard data in parallel...');
+      print('[MechanicService] Loading provider dashboard from aggregated endpoint...');
 
-      // Fetch all data simultaneously using Future.wait()
-      final results = await Future.wait([
-        getVerificationStatus(providerId),
-        getRequestHistory(),
-      ]);
-
-      final verificationStatus = results[0] as ProviderVerificationStatus;
-      final recentJobs = results[1] as List<RecentJob>;
-
-      print('[MechanicService] Dashboard data loaded successfully');
-
-      return ProviderDashboardData(
-        verification: verificationStatus,
-        recentJobs: recentJobs,
-        isAvailable: verificationStatus.availabilityStatus == 'AVAILABLE',
+      // Single unified request to backend endpoint
+      final response = await ApiClient.get(
+        '/providers/me/dashboard',
+        requiresAuth: true,
       );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final dashboardResponse = DashboardResponse.fromJson(data);
+
+        print('[MechanicService] Dashboard data loaded successfully');
+
+        // Convert response to ProviderDashboardData for UI consumption
+        return ProviderDashboardData(
+          businessName: dashboardResponse.profile.businessName,
+          verificationStatus: dashboardResponse.verificationStatus.status,
+          isAvailable:
+              dashboardResponse.availabilityStatus.status == 'AVAILABLE',
+          monthlyEarnings: dashboardResponse.earnings.monthlyEarnings,
+          recentJobs: dashboardResponse.recentJobs
+              .map((job) => RecentJob(
+                    id: job.id,
+                    customerId: job.driverId,
+                    customerName: job.driverName,
+                    serviceType: job.description,
+                    amount: (job.amount as num).toDouble(),
+                    status: job.status,
+                    completedAt: job.completedAt ?? job.assignedAt,
+                    avatarUrl: null,
+                  ))
+              .toList(),
+        );
+      } else if (response.statusCode == 401) {
+        throw ApiException('Unauthorized - invalid or missing token');
+      } else if (response.statusCode == 404) {
+        throw ApiException('Provider profile not found');
+      } else {
+        throw ApiException(
+          'Failed to fetch dashboard data: ${response.statusCode}',
+        );
+      }
     } catch (e) {
       print('[MechanicService] Error loading provider dashboard: $e');
       if (e is ApiException) rethrow;
@@ -315,26 +340,203 @@ class MechanicDashboardData {
   }
 }
 
-/// Model for provider dashboard data (OPTIMIZED PARALLEL LOADING)
-/// Combines all data needed for the mechanic dashboard
-/// Fetched using parallel requests for efficiency (~3x faster)
+/// Dashboard response from /providers/me/dashboard endpoint
+class DashboardResponse {
+  final DashboardProfile profile;
+  final DashboardVerificationStatus verificationStatus;
+  final DashboardAvailabilityStatus availabilityStatus;
+  final DashboardEarnings earnings;
+  final List<DashboardJob> recentJobs;
+
+  DashboardResponse({
+    required this.profile,
+    required this.verificationStatus,
+    required this.availabilityStatus,
+    required this.earnings,
+    required this.recentJobs,
+  });
+
+  factory DashboardResponse.fromJson(Map<String, dynamic> json) {
+    return DashboardResponse(
+      profile: DashboardProfile.fromJson(json['profile'] as Map<String, dynamic>),
+      verificationStatus: DashboardVerificationStatus.fromJson(
+        json['verificationStatus'] as Map<String, dynamic>,
+      ),
+      availabilityStatus: DashboardAvailabilityStatus.fromJson(
+        json['availabilityStatus'] as Map<String, dynamic>,
+      ),
+      earnings: DashboardEarnings.fromJson(
+        json['earnings'] as Map<String, dynamic>,
+      ),
+      recentJobs: (json['recentJobs'] as List<dynamic>?)
+              ?.map((job) => DashboardJob.fromJson(job as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+/// Provider profile information
+class DashboardProfile {
+  final String id;
+  final String userId;
+  final String businessName;
+  final String businessPhone;
+  final String businessAddress;
+  final String providerType; // INDIVIDUAL or COMPANY
+
+  DashboardProfile({
+    required this.id,
+    required this.userId,
+    required this.businessName,
+    required this.businessPhone,
+    required this.businessAddress,
+    required this.providerType,
+  });
+
+  factory DashboardProfile.fromJson(Map<String, dynamic> json) {
+    return DashboardProfile(
+      id: json['id'] as String,
+      userId: json['userId'] as String,
+      businessName: json['businessName'] as String,
+      businessPhone: json['businessPhone'] as String,
+      businessAddress: json['businessAddress'] as String,
+      providerType: json['providerType'] as String,
+    );
+  }
+}
+
+/// Verification status information
+class DashboardVerificationStatus {
+  final String status; // APPROVED, PENDING, REJECTED
+  final DateTime? verifiedAt;
+
+  DashboardVerificationStatus({
+    required this.status,
+    this.verifiedAt,
+  });
+
+  factory DashboardVerificationStatus.fromJson(Map<String, dynamic> json) {
+    return DashboardVerificationStatus(
+      status: json['status'] as String,
+      verifiedAt: json['verifiedAt'] != null
+          ? DateTime.parse(json['verifiedAt'] as String)
+          : null,
+    );
+  }
+}
+
+/// Availability status information
+class DashboardAvailabilityStatus {
+  final String status; // AVAILABLE, OFFLINE
+  final DateTime updatedAt;
+
+  DashboardAvailabilityStatus({
+    required this.status,
+    required this.updatedAt,
+  });
+
+  factory DashboardAvailabilityStatus.fromJson(Map<String, dynamic> json) {
+    return DashboardAvailabilityStatus(
+      status: json['status'] as String,
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+    );
+  }
+}
+
+/// Earnings information
+class DashboardEarnings {
+  final double monthlyEarnings;
+  final String currency; // NGN, USD, etc.
+  final String period; // "February 2026"
+  final DateTime lastUpdated;
+
+  DashboardEarnings({
+    required this.monthlyEarnings,
+    required this.currency,
+    required this.period,
+    required this.lastUpdated,
+  });
+
+  factory DashboardEarnings.fromJson(Map<String, dynamic> json) {
+    return DashboardEarnings(
+      monthlyEarnings: (json['monthlyEarnings'] as num?)?.toDouble() ?? 0.0,
+      currency: json['currency'] as String,
+      period: json['period'] as String,
+      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+    );
+  }
+}
+
+/// Job information from dashboard
+class DashboardJob {
+  final String id;
+  final String driverId;
+  final String driverName;
+  final String driverPhone;
+  final String description;
+  final String location;
+  final String status; // COMPLETED, ASSIGNED, etc.
+  final int amount;
+  final DateTime assignedAt;
+  final DateTime? completedAt;
+  final DateTime createdAt;
+
+  DashboardJob({
+    required this.id,
+    required this.driverId,
+    required this.driverName,
+    required this.driverPhone,
+    required this.description,
+    required this.location,
+    required this.status,
+    required this.amount,
+    required this.assignedAt,
+    this.completedAt,
+    required this.createdAt,
+  });
+
+  factory DashboardJob.fromJson(Map<String, dynamic> json) {
+    return DashboardJob(
+      id: json['id'] as String,
+      driverId: json['driverId'] as String,
+      driverName: json['driverName'] as String,
+      driverPhone: json['driverPhone'] as String,
+      description: json['description'] as String,
+      location: json['location'] as String,
+      status: json['status'] as String,
+      amount: json['amount'] as int,
+      assignedAt: DateTime.parse(json['assignedAt'] as String),
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'] as String)
+          : null,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+}
+
+
+/// Aggregated dashboard data for the mechanic dashboard UI
+/// Contains all necessary information from the backend dashboard endpoint
 class ProviderDashboardData {
-  final ProviderVerificationStatus verification;
-  final List<RecentJob> recentJobs;
+  final String businessName;
+  final String verificationStatus; // APPROVED, PENDING, REJECTED
   final bool isAvailable;
+  final double monthlyEarnings;
+  final List<RecentJob> recentJobs;
 
   ProviderDashboardData({
-    required this.verification,
-    required this.recentJobs,
+    required this.businessName,
+    required this.verificationStatus,
     required this.isAvailable,
+    required this.monthlyEarnings,
+    required this.recentJobs,
   });
 
   /// Calculate job count from recent jobs list
   int get jobCount => recentJobs.length;
 
-  /// Calculate total earnings from recent jobs
-  /// In production, this would come from a dedicated earnings endpoint
-  double get totalEarnings {
-    return recentJobs.fold(0.0, (sum, job) => sum + job.amount);
-  }
+  /// Get total earnings (from monthly earnings data)
+  double get totalEarnings => monthlyEarnings;
 }
+
