@@ -109,7 +109,8 @@ class MyApp extends StatelessWidget {
                         builder: (context, emailSnapshot) {
                           return MechanicLockedDashboard(
                             email: emailSnapshot.data ?? 'user@example.com',
-                            phoneNumber: '', // Will be updated from dashboard logic
+                            phoneNumber:
+                                '', // Will be updated from dashboard logic
                           );
                         },
                       );

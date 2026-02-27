@@ -69,14 +69,21 @@ class MechanicService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        print(
+          '============== successfully Updated availability status: ${data['availabilityStatus']}==============',
+        );
         return ProviderVerificationStatus.fromJson(data);
       } else {
+        print(
+          '==============Failed to update availability: ${response.statusCode} - ${response.body}==============',
+        );
         throw ApiException(
           'Failed to update availability: ${response.statusCode}',
         );
       }
     } catch (e) {
       if (e is ApiException) rethrow;
+      print('==============Error updating availability: $e==============');
       throw ApiException('Error updating availability: $e');
     }
   }

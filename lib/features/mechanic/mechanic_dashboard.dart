@@ -22,6 +22,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
   int _currentJobCount = 0;
   List<RecentJob> _recentJobs = [];
   String? _mechanicName;
+  bool _disposed = false;
 
   @override
   void initState() {
@@ -29,16 +30,26 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
     _loadDashboardData();
   }
 
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   Future<void> _loadDashboardData() async {
+    if (_disposed) return;
+
     try {
       final userId = await TokenService.getUserId();
       final userData = await TokenService.getUserData();
       final providerId = await TokenService.getProviderId() ?? userId;
 
-      if (providerId != null) {
-        setState(() {
-          _mechanicName = userData?['name'] as String? ?? 'Mechanic';
-        });
+      if (providerId != null && !_disposed) {
+        if (!_disposed && mounted) {
+          setState(() {
+            _mechanicName = userData?['name'] as String? ?? 'Mechanic';
+          });
+        }
 
         // Fetch verification status and request history from real API
         try {
@@ -46,23 +57,30 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
               await MechanicService.getVerificationStatus(providerId);
           final requestHistory = await MechanicService.getRequestHistory();
 
-          setState(() {
-            _currentEarnings = 1200.0; // TODO: Get from earnings endpoint
-            _currentJobCount = requestHistory.length;
-            _recentJobs = requestHistory;
-            _isAvailable = verificationStatus.availabilityStatus == 'AVAILABLE';
-          });
+          if (!_disposed && mounted) {
+            setState(() {
+              _currentEarnings = 1200.0; // TODO: Get from earnings endpoint
+              _currentJobCount = requestHistory.length;
+              _recentJobs = requestHistory;
+              _isAvailable =
+                  verificationStatus.availabilityStatus == 'AVAILABLE';
+            });
+          }
         } catch (e) {
           print('Error loading dashboard data: $e');
-          _loadMockData();
+          if (!_disposed && mounted) {
+            _loadMockData();
+          }
         }
       }
     } catch (e) {
       print('Error loading mechanic ID: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (!_disposed && mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -102,6 +120,8 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
   }
 
   Future<void> _toggleAvailability(bool value) async {
+    if (_disposed || !mounted) return;
+
     try {
       // Optimistic update
       setState(() {
@@ -110,7 +130,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
 
       // Update on backend
       await MechanicService.updateAvailabilityStatus(value);
-      if (mounted) {
+      if (!_disposed && mounted) {
         ToastService.showSuccess(
           context,
           value ? 'You are now accepting jobs' : 'You are now offline',
@@ -118,10 +138,10 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
       }
     } catch (e) {
       // Revert on error
-      setState(() {
-        _isAvailable = !value;
-      });
-      if (mounted) {
+      if (!_disposed && mounted) {
+        setState(() {
+          _isAvailable = !value;
+        });
         ToastService.showError(context, 'Failed to update availability');
       }
     }
@@ -132,6 +152,8 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
   }
 
   void _handleNavigation(int index) {
+    if (_disposed || !mounted) return;
+
     setState(() {
       _selectedNavIndex = index;
     });

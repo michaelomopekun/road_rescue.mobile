@@ -8,6 +8,7 @@ import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.d
 import 'package:road_rescue/features/mechanic/verification/business_info_screen.dart';
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/mechanic_service.dart';
+import 'package:road_rescue/services/auth_service.dart';
 
 class MechanicLockedDashboard extends StatefulWidget {
   final String email;
@@ -31,6 +32,7 @@ class MechanicLockedDashboard extends StatefulWidget {
 class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
   VerificationStatus? _verificationStatus;
   bool _isLoading = true;
+  bool _disposed = false;
 
   @override
   void initState() {
@@ -38,32 +40,44 @@ class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
     _loadVerificationStatus();
   }
 
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   Future<void> _loadVerificationStatus() async {
+    if (_disposed) return;
+
     try {
       final userId = await TokenService.getUserId();
       final providerId = await TokenService.getProviderId() ?? userId;
 
-      if (providerId != null) {
+      if (providerId != null && !_disposed) {
         final providerStatus = await MechanicService.getVerificationStatus(
           providerId,
         );
 
-        setState(() {
-          _verificationStatus = VerificationStatus.fromJson({
-            'id': providerStatus.id,
-            'verificationStatus': providerStatus.verificationStatus,
-            'createdAt': providerStatus.createdAt.toIso8601String(),
-            'verifiedAt': providerStatus.verifiedAt?.toIso8601String(),
+        if (!_disposed && mounted) {
+          setState(() {
+            _verificationStatus = VerificationStatus.fromJson({
+              'id': providerStatus.id,
+              'verificationStatus': providerStatus.verificationStatus,
+              'createdAt': providerStatus.createdAt.toIso8601String(),
+              'verifiedAt': providerStatus.verifiedAt?.toIso8601String(),
+            });
           });
-        });
+        }
       }
     } catch (e) {
       // Status check failed, assume not started
       print('Error loading verification status: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (!_disposed && mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -77,7 +91,9 @@ class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
         )
         .then((_) {
           // Refresh verification status when returning
-          _loadVerificationStatus();
+          if (mounted && !_disposed) {
+            _loadVerificationStatus();
+          }
         });
   }
 
@@ -110,9 +126,9 @@ class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              // Logout: clear auth data and navigate to login
-              await TokenService.clearAuthData();
-              if (mounted) {
+              // Logout: clear auth data and let AuthNotifier trigger state change
+              await AuthService.logout();
+              if (mounted && !_disposed) {
                 Navigator.of(context).pushReplacementNamed('/login');
               }
             },
