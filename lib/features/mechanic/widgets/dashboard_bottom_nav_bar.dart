@@ -30,17 +30,17 @@ class DashboardBottomNavBar extends StatelessWidget {
       BottomNavigationBarItem(icon: const Icon(Icons.person), label: 'Profile'),
     ];
 
-    // For locked dashboard, only show Home tab
-    if (variant == DashboardNavVariant.lockedDashboard) {
-      return [allItems[0]];
-    }
-
     // For full dashboard, show all tabs
     return allItems;
   }
 
   @override
   Widget build(BuildContext context) {
+    // For locked dashboard
+    if (variant == DashboardNavVariant.lockedDashboard) {
+      return const SizedBox.shrink();
+    }
+
     return BottomNavigationBar(
       currentIndex: selectedIndex,
       onTap: onTabChanged,

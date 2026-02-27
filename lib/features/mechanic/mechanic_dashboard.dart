@@ -21,7 +21,6 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
   double _currentEarnings = 0.0;
   int _currentJobCount = 0;
   List<RecentJob> _recentJobs = [];
-  String? _mechanicId;
   String? _mechanicName;
 
   @override
@@ -38,29 +37,25 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
 
       if (providerId != null) {
         setState(() {
-          _mechanicId = providerId;
           _mechanicName = userData?['name'] as String? ?? 'Mechanic';
         });
 
-        // Fetch dashboard data - using mock data for now
-        _loadMockData();
-
-        // TODO: Uncomment when backend is ready
-        /*
+        // Fetch verification status and request history from real API
         try {
-          final dashboardData =
-              await MechanicService.getDashboardData(providerId);
+          final verificationStatus =
+              await MechanicService.getVerificationStatus(providerId);
+          final requestHistory = await MechanicService.getRequestHistory();
+
           setState(() {
-            _isAvailable = dashboardData.isAvailable;
-            _currentEarnings = dashboardData.currentMonthEarnings;
-            _currentJobCount = dashboardData.currentMonthJobCount;
-            _recentJobs = dashboardData.recentJobs;
+            _currentEarnings = 1200.0; // TODO: Get from earnings endpoint
+            _currentJobCount = requestHistory.length;
+            _recentJobs = requestHistory;
+            _isAvailable = verificationStatus.availabilityStatus == 'AVAILABLE';
           });
         } catch (e) {
           print('Error loading dashboard data: $e');
           _loadMockData();
         }
-        */
       }
     } catch (e) {
       print('Error loading mechanic ID: $e');
@@ -108,14 +103,14 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
 
   Future<void> _toggleAvailability(bool value) async {
     try {
+      // Optimistic update
       setState(() {
         _isAvailable = value;
       });
 
-      if (_mechanicId != null) {
-        // TODO: Uncomment when backend is ready
-        // await MechanicService.updateAvailabilityStatus(_mechanicId!, value);
-        // For now, just show success message
+      // Update on backend
+      await MechanicService.updateAvailabilityStatus(value);
+      if (mounted) {
         ToastService.showSuccess(
           context,
           value ? 'You are now accepting jobs' : 'You are now offline',

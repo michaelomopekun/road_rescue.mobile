@@ -7,7 +7,7 @@ import 'package:road_rescue/features/mechanic/widgets/workshop_address_card.dart
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
 import 'package:road_rescue/features/mechanic/verification/business_info_screen.dart';
 import 'package:road_rescue/services/token_service.dart';
-import 'package:road_rescue/services/auth_service.dart';
+import 'package:road_rescue/services/mechanic_service.dart';
 
 class MechanicLockedDashboard extends StatefulWidget {
   final String email;
@@ -44,16 +44,16 @@ class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
       final providerId = await TokenService.getProviderId() ?? userId;
 
       if (providerId != null) {
-        final response = await AuthService.getVerificationStatus(
-          providerId: providerId,
+        final providerStatus = await MechanicService.getVerificationStatus(
+          providerId,
         );
 
         setState(() {
           _verificationStatus = VerificationStatus.fromJson({
-            'id': response.id,
-            'verificationStatus': response.verificationStatus,
-            'createdAt': response.createdAt,
-            'verifiedAt': response.verifiedAt,
+            'id': providerStatus.id,
+            'verificationStatus': providerStatus.verificationStatus,
+            'createdAt': providerStatus.createdAt.toIso8601String(),
+            'verifiedAt': providerStatus.verifiedAt?.toIso8601String(),
           });
         });
       }

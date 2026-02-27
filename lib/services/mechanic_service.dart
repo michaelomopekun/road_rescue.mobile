@@ -3,7 +3,85 @@ import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/services/exceptions.dart';
 
 class MechanicService {
-  /// Get current month earnings for mechanic
+  /// Get provider verification status
+  static Future<ProviderVerificationStatus> getVerificationStatus(
+    String providerId,
+  ) async {
+    try {
+      final response = await ApiClient.get(
+        '/providers/$providerId/verification-status',
+        requiresAuth: true,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return ProviderVerificationStatus.fromJson(data);
+      } else if (response.statusCode == 404) {
+        throw ApiException('Provider not found');
+      } else {
+        throw ApiException(
+          'Failed to fetch verification status: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Error fetching verification status: $e');
+    }
+  }
+
+  /// Get provider request history
+  static Future<List<RecentJob>> getRequestHistory({int limit = 5}) async {
+    try {
+      final response = await ApiClient.get(
+        '/providers/me/request-history?limit=$limit',
+        requiresAuth: true,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final jobs =
+            (data['jobs'] as List<dynamic>?)
+                ?.map((job) => RecentJob.fromJson(job as Map<String, dynamic>))
+                .toList() ??
+            [];
+        return jobs;
+      } else {
+        throw ApiException(
+          'Failed to fetch request history: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Error fetching request history: $e');
+    }
+  }
+
+  /// Update provider availability status (uses /providers/me/availability)
+  static Future<ProviderVerificationStatus> updateAvailabilityStatus(
+    bool isAvailable,
+  ) async {
+    try {
+      final response = await ApiClient.put(
+        '/providers/me/availability',
+        body: {'availabilityStatus': isAvailable ? 'AVAILABLE' : 'OFFLINE'},
+        requiresAuth: true,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return ProviderVerificationStatus.fromJson(data);
+      } else {
+        throw ApiException(
+          'Failed to update availability: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Error updating availability: $e');
+    }
+  }
+
+  /// Get current month earnings for mechanic (legacy endpoint - may need update)
   static Future<double> getCurrentMonthEarnings(String mechanicId) async {
     try {
       final response = await ApiClient.get(
@@ -23,7 +101,7 @@ class MechanicService {
     }
   }
 
-  /// Get current month job count for mechanic
+  /// Get current month job count for mechanic (legacy endpoint - may need update)
   static Future<int> getCurrentMonthJobCount(String mechanicId) async {
     try {
       final response = await ApiClient.get(
@@ -43,7 +121,7 @@ class MechanicService {
     }
   }
 
-  /// Get recent completed jobs for mechanic
+  /// Get recent completed jobs for mechanic (legacy endpoint - may need update)
   static Future<List<RecentJob>> getRecentJobs(
     String mechanicId, {
     int limit = 5,
@@ -73,29 +151,6 @@ class MechanicService {
     }
   }
 
-  /// Update mechanic availability status
-  static Future<void> updateAvailabilityStatus(
-    String mechanicId,
-    bool isAvailable,
-  ) async {
-    try {
-      final response = await ApiClient.put(
-        '/mechanics/$mechanicId/availability',
-        body: {'isAvailable': isAvailable},
-        requiresAuth: true,
-      );
-
-      if (response.statusCode != 200) {
-        throw ApiException(
-          'Failed to update availability: ${response.statusCode}',
-        );
-      }
-    } catch (e) {
-      if (e is ApiException) rethrow;
-      throw ApiException('Error updating availability: $e');
-    }
-  }
-
   /// Get mechanic dashboard data (combined call)
   static Future<MechanicDashboardData> getDashboardData(
     String mechanicId,
@@ -118,6 +173,41 @@ class MechanicService {
       if (e is ApiException) rethrow;
       throw ApiException('Error fetching dashboard data: $e');
     }
+  }
+}
+
+/// Model for provider verification status
+class ProviderVerificationStatus {
+  final String id;
+  final String businessName;
+  final String verificationStatus; // PENDING, APPROVED, REJECTED
+  final String? availabilityStatus; // AVAILABLE, OFFLINE
+  final DateTime? verifiedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  ProviderVerificationStatus({
+    required this.id,
+    required this.businessName,
+    required this.verificationStatus,
+    this.availabilityStatus,
+    this.verifiedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory ProviderVerificationStatus.fromJson(Map<String, dynamic> json) {
+    return ProviderVerificationStatus(
+      id: json['id'] as String,
+      businessName: json['businessName'] as String,
+      verificationStatus: json['verificationStatus'] as String,
+      availabilityStatus: json['availabilityStatus'] as String?,
+      verifiedAt: json['verifiedAt'] != null
+          ? DateTime.parse(json['verifiedAt'] as String)
+          : null,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+    );
   }
 }
 

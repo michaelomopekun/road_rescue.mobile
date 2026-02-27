@@ -189,21 +189,32 @@ class TokenService {
   /// Returns null if token exists but role doesn't (or vice versa)
   /// This prevents mismatched states during app reload
   static Future<AuthData?> getAuthData() async {
+    print('[TokenService] getAuthData() called');
     final token = await getToken();
+    print(
+      '[TokenService] getToken() returned: ${token != null ? '${token.substring(0, 20)}...' : 'null'}',
+    );
+
     final role = await getUserRole();
+    print('[TokenService] getUserRole() returned: $role');
 
     // If one exists but not the other, something is wrong - clear both
     if ((token != null && role == null) || (token == null && role != null)) {
       // Mismatch detected - clear everything to recover
+      print(
+        '[TokenService] MISMATCH DETECTED! token!=null: ${token != null}, role!=null: ${role != null}',
+      );
       await clearAuthData();
       return null;
     }
 
     // Both exist or both are null - state is consistent
     if (token != null && role != null) {
+      print('[TokenService] SUCCESS: Returning AuthData with role=$role');
       return AuthData(token: token, role: role);
     }
 
+    print('[TokenService] Both token and role are null, returning null');
     return null;
   }
 }

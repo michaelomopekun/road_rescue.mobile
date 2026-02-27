@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/exceptions.dart';
+import 'package:road_rescue/services/auth_notifier.dart';
 
 /// Service for handling authentication API calls
 class AuthService {
@@ -69,7 +71,55 @@ class AuthService {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final loginResponse = LoginResponse.fromJson(data);
 
-        // Save token and user data
+        // If provider/mechanic, fetch verification status FIRST before saving token
+        String? verificationStatus;
+        if (loginResponse.role == 'PROVIDER' ||
+            loginResponse.role == 'mechanic') {
+          try {
+            // Make direct HTTP call with fresh token (don't use stored token yet)
+            final uri = Uri.parse(
+              '${ApiClient.baseUrl}/providers/${loginResponse.userId}/verification-status',
+            );
+            final verifyResponse = await http
+                .get(
+                  uri,
+                  headers: {
+                    'Authorization': 'Bearer ${loginResponse.accessToken}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                  },
+                )
+                .timeout(const Duration(seconds: 30));
+
+            if (verifyResponse.statusCode == 200) {
+              final statusData =
+                  jsonDecode(verifyResponse.body) as Map<String, dynamic>;
+              verificationStatus =
+                  statusData['verificationStatus'] as String? ?? 'NOT_VERIFIED';
+            } else {
+              verificationStatus = 'NOT_VERIFIED';
+            }
+          } catch (e) {
+            // If status check fails, assume NOT_VERIFIED for new mechanics
+            print('Error fetching verification status during login: $e');
+            verificationStatus = 'NOT_VERIFIED';
+          }
+        }
+
+        // Now save verification status first (doesn't trigger rebuild)
+        if (verificationStatus != null) {
+          await TokenService.saveVerificationStatus(verificationStatus);
+          print('[AuthService] Verification status saved: $verificationStatus');
+        }
+
+        // Then save token and user data (this triggers main.dart rebuild)
+        // By now, verification status is already in SharedPreferences
+        print(
+          '[AuthService] Saving token: ${loginResponse.accessToken.substring(0, 20)}...',
+        );
+        print(
+          '[AuthService] User data - ID: ${loginResponse.userId}, Role: ${loginResponse.role}',
+        );
         await TokenService.saveToken(
           token: loginResponse.accessToken,
           userData: {
@@ -78,24 +128,18 @@ class AuthService {
             'role': loginResponse.role,
           },
         );
+        print('[AuthService] Token saved successfully');
 
-        // If mechanic, fetch verification status
-        if (loginResponse.role == 'mechanic') {
-          try {
-            // Fetch verification status using userId
-            final statusResponse = await getVerificationStatus(
-              providerId: loginResponse.userId,
-            );
-            // Save the verification status
-            await TokenService.saveVerificationStatus(
-              statusResponse.verificationStatus,
-            );
-          } catch (e) {
-            // If status check fails, assume NOT_VERIFIED for new mechanics
-            print('Error fetching verification status: $e');
-            await TokenService.saveVerificationStatus('NOT_VERIFIED');
-          }
-        }
+        // Verify token was saved
+        final savedToken = await TokenService.getToken();
+        final savedRole = await TokenService.getUserRole();
+        print(
+          '[AuthService] Verification - Token exists: ${savedToken != null}, Role: $savedRole',
+        );
+
+        // Notify listeners that auth state has changed
+        authNotifier.notifyAuthStateChanged();
+        print('[AuthService] Auth notifier triggered');
 
         return loginResponse;
       } else if (response.statusCode == 401) {
@@ -149,6 +193,7 @@ class AuthService {
   /// Logout user (clear local token)
   static Future<void> logout() async {
     await TokenService.clearToken();
+    authNotifier.notifyAuthStateChanged();
   }
 
   /// Check if user is currently authenticated
@@ -277,6 +322,10 @@ class AuthService {
       final response = await ApiClient.get(
         '/providers/$providerId/verification-status',
         requiresAuth: true,
+      );
+
+      print(
+        'Get verification status response: ${response.statusCode} ${response.body}',
       );
 
       if (response.statusCode == 200) {

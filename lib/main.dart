@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/services/token_service.dart';
+import 'package:road_rescue/services/mechanic_service.dart';
+import 'package:road_rescue/services/auth_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
 import 'features/onboarding/onboarding_screen.dart';
@@ -29,58 +31,101 @@ class MyApp extends StatelessWidget {
 
   const MyApp({super.key, required this.onboardingComplete});
 
+  /// Get verification status from cache, or fetch from API if not cached
+  Future<String?> _getVerificationStatus(AuthData authData) async {
+    // First try to get from SharedPreferences (saved during login)
+    final cachedStatus = await TokenService.getVerificationStatus();
+    if (cachedStatus != null) {
+      print('Using cached verification status: $cachedStatus');
+      return cachedStatus;
+    }
+
+    // If not in cache, fetch from API
+    print('Verification status not cached, fetching from API...');
+    try {
+      final providerId = await TokenService.getProviderId();
+      if (providerId != null) {
+        // Use MechanicService to fetch verification status
+        final providerStatus = await MechanicService.getVerificationStatus(
+          providerId,
+        );
+        final status = providerStatus.verificationStatus;
+        // Cache it for future app launches
+        await TokenService.saveVerificationStatus(status);
+        print('Fetched and cached verification status: $status');
+        return status;
+      }
+    } catch (e) {
+      print('Error fetching verification status: $e');
+    }
+
+    // Default to not verified if we can't get the status
+    return 'NOT_VERIFIED';
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: FutureBuilder<AuthData?>(
-        future: TokenService.getAuthData(),
-        builder: (context, snapshot) {
-          // While checking authentication status
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
+      home: ListenableBuilder(
+        listenable: authNotifier,
+        builder: (context, child) {
+          return FutureBuilder<AuthData?>(
+            future: authNotifier.getAuthData(),
+            builder: (context, snapshot) {
+              print(
+                '[Main] FutureBuilder - connectionState: ${snapshot.connectionState}, hasData: ${snapshot.hasData}, data: ${snapshot.data}',
+              );
 
-          // If user is authenticated, show appropriate dashboard based on role
-          if (snapshot.hasData && snapshot.data != null) {
-            final authData = snapshot.data!;
+              // While checking authentication status
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
 
-            // Route to appropriate dashboard based on user role
-            if (authData.role == 'mechanic') {
-              return FutureBuilder<String?>(
-                future: TokenService.getVerificationStatus(),
-                builder: (context, statusSnapshot) {
-                  final status = statusSnapshot.data;
+              // If user is authenticated, show appropriate dashboard based on role
+              if (snapshot.hasData && snapshot.data != null) {
+                final authData = snapshot.data!;
+                print('[Main] User authenticated with role: ${authData.role}');
 
-                  // If approved, show full dashboard
-                  if (status == 'approved') {
-                    return const MechanicDashboard();
-                  }
-
-                  // Otherwise show locked dashboard
+                // Route to appropriate dashboard based on user role
+                if (authData.role == 'PROVIDER') {
                   return FutureBuilder<String?>(
-                    future: TokenService.getUserEmail(),
-                    builder: (context, emailSnapshot) {
-                      return MechanicLockedDashboard(
-                        email: emailSnapshot.data ?? 'user@example.com',
-                        phoneNumber: '', // Will be updated from dashboard logic
+                    future: _getVerificationStatus(authData),
+                    builder: (context, statusSnapshot) {
+                      final status = statusSnapshot.data?.toUpperCase();
+                      print('[Main] Verification status: $status');
+
+                      // If approved, show full dashboard
+                      if (status == 'APPROVED') {
+                        return const MechanicDashboard();
+                      }
+
+                      // Otherwise show locked dashboard
+                      return FutureBuilder<String?>(
+                        future: TokenService.getUserEmail(),
+                        builder: (context, emailSnapshot) {
+                          return MechanicLockedDashboard(
+                            email: emailSnapshot.data ?? 'user@example.com',
+                            phoneNumber: '', // Will be updated from dashboard logic
+                          );
+                        },
                       );
                     },
                   );
-                },
-              );
-            } else if (authData.role == 'driver') {
-              return const DashboardPlaceholder(); // TODO: Replace with driver dashboard
-            }
-          }
+                } else if (authData.role == 'DRIVER') {
+                  return const DashboardPlaceholder(); // TODO: Replace with driver dashboard
+                }
+              }
 
-          // If not authenticated, show login/onboarding
-          return onboardingComplete
-              ? const LoginSignupScreen()
-              : const OnboardingScreen();
+              // If not authenticated, show login/onboarding
+              return onboardingComplete
+                  ? const LoginSignupScreen()
+                  : const OnboardingScreen();
+            },
+          );
         },
       ),
       routes: {
@@ -151,6 +196,7 @@ class DashboardPlaceholder extends StatelessWidget {
           onPressed: () async {
             // Logout
             await TokenService.clearToken();
+            authNotifier.notifyAuthStateChanged();
             if (context.mounted) {
               Navigator.pushReplacementNamed(context, '/login');
             }

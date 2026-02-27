@@ -5,6 +5,7 @@ import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 import 'package:road_rescue/services/auth_service.dart';
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/exceptions.dart';
+import 'package:road_rescue/services/toast_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 import 'package:road_rescue/theme/app_theme.dart';
@@ -49,9 +50,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
         // Validate file is not empty
         if (fileBytes == null || fileBytes.isEmpty) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Error: File is empty or invalid')),
-            );
+            ToastService.showError(context, 'Error: File is empty or invalid');
           }
           return;
         }
@@ -59,12 +58,9 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
         // Validate minimum file size (at least 1KB)
         if (fileSize < 1024) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'File is too small. Please select a valid document.',
-                ),
-              ),
+            ToastService.showError(
+              context,
+              'File is too small. Please select a valid document.',
             );
           }
           return;
@@ -75,20 +71,15 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
         });
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'File selected: $fileName (${(fileSize / 1024).toStringAsFixed(2)} KB)',
-              ),
-            ),
+          ToastService.showSuccess(
+            context,
+            'File selected: $fileName (${(fileSize / 1024).toStringAsFixed(2)} KB)',
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        ToastService.showError(context, 'Error: ${e.toString()}');
       }
     }
   }
@@ -97,9 +88,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
     // Validate document type selected
     if (_selectedDocumentType == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a document type')),
-        );
+        ToastService.showWarning(context, 'Please select a document type');
       }
       return;
     }
@@ -107,9 +96,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
     // Validate document uploaded
     if (_uploadedDocument == null || _uploadedDocument!.$2.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please upload a document')),
-        );
+        ToastService.showWarning(context, 'Please upload a document');
       }
       return;
     }
@@ -166,15 +153,11 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
       }
     } on ValidationException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Validation Error: ${e.toString()}')),
-        );
+        ToastService.showError(context, 'Validation Error: ${e.toString()}');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        ToastService.showError(context, 'Error: ${e.toString()}');
       }
     } finally {
       if (mounted) {

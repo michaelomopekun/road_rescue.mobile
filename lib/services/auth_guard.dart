@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/services/token_service.dart';
+import 'package:road_rescue/services/auth_notifier.dart';
 
 /// Auth middleware/guard for protecting routes
 /// This widget checks if the user is authenticated and either shows the protected widget
@@ -89,6 +90,7 @@ class AuthUtils {
   /// Logout user
   static Future<void> logout() async {
     await TokenService.clearToken();
+    authNotifier.notifyAuthStateChanged();
   }
 
   /// Check if token is about to expire (within 1 hour)

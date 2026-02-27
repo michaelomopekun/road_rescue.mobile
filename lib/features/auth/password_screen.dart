@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:road_rescue/services/auth_service.dart';
 import 'package:road_rescue/services/exceptions.dart';
 import 'package:road_rescue/theme/app_theme.dart';
-// import 'package:road_rescue/features/driver/driver_dashboard.dart';
-import 'package:road_rescue/features/mechanic/mechanic_locked_dashboard.dart';
 import '../../shared/widgets/app_logo.dart';
 import '../../shared/widgets/custom_text_field.dart';
 import '../../shared/widgets/primary_button.dart';
@@ -64,33 +62,16 @@ class _PasswordScreenState extends State<PasswordScreen> {
 
     try {
       // Call login API
-      final loginResponse = await AuthService.login(
-        email: widget.email,
-        password: password,
-      );
+      print('[PasswordScreen] Starting login for ${widget.email}');
+      await AuthService.login(email: widget.email, password: password);
+      print('[PasswordScreen] Login completed, navigating to /');
 
       if (!mounted) return;
 
-      // Navigate to appropriate dashboard based on role
-      String userRole = widget.role.toUpperCase();
-
-      if (userRole == 'DRIVER') {
-        Navigator.pushReplacementNamed(context, '/driver-dashboard');
-      } else if (userRole == 'PROVIDER') {
-        // Navigate to mechanic/provider dashboard
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MechanicLockedDashboard(
-              email: loginResponse.email,
-              phoneNumber: loginResponse.phone ?? '',
-            ),
-          ),
-        );
-      } else {
-        // Default fallback
-        Navigator.pushReplacementNamed(context, '/driver-dashboard');
-      }
+      // Navigate to home - let main.dart FutureBuilder handle routing
+      // based on verification status (which was saved during login)
+      Navigator.pushReplacementNamed(context, '/');
+      print('[PasswordScreen] Navigation to / completed');
     } on UnauthorizedException catch (e) {
       setState(() {
         _errorMessage = e.message;
