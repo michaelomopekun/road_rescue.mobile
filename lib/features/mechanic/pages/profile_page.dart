@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
 import 'package:road_rescue/services/token_service.dart';
+import 'package:road_rescue/services/toast_service.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
 class MechanicProfilePage extends StatefulWidget {
@@ -77,9 +78,12 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
     );
 
     if (confirmed == true) {
+      ToastService.showSuccess(context, 'Logged out successfully');
       await TokenService.clearAuthData();
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Navigator.of(context).pushReplacementNamed('/login');
+        });
       }
     }
   }

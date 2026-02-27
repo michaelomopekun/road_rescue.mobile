@@ -5,6 +5,7 @@ import 'package:road_rescue/features/auth/widgets/signup_steps/password_step_wid
 import 'package:road_rescue/features/mechanic/mechanic_locked_dashboard.dart';
 import 'package:road_rescue/services/auth_service.dart';
 import 'package:road_rescue/services/exceptions.dart';
+import 'package:road_rescue/services/toast_service.dart';
 import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 

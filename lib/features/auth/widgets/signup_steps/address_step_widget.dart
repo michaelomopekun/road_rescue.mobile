@@ -3,6 +3,7 @@ import 'package:road_rescue/models/place_prediction.dart';
 import 'package:road_rescue/models/workshop_location.dart';
 import 'package:road_rescue/shared/widgets/custom_text_field.dart';
 import 'package:road_rescue/shared/widgets/primary_button.dart';
+import 'package:road_rescue/services/toast_service.dart';
 import 'dart:async';
 
 import 'package:road_rescue/theme/app_theme.dart';
@@ -200,10 +201,9 @@ class _AddressStepWidgetState extends State<AddressStepWidget> {
 
   void _onContinue() {
     if (_selectedLocation == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select an address from suggestions'),
-        ),
+      ToastService.showError(
+        context,
+        'Please select an address from suggestions',
       );
       return;
     }

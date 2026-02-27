@@ -115,6 +115,11 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
       if (_mechanicId != null) {
         // TODO: Uncomment when backend is ready
         // await MechanicService.updateAvailabilityStatus(_mechanicId!, value);
+        // For now, just show success message
+        ToastService.showSuccess(
+          context,
+          value ? 'You are now accepting jobs' : 'You are now offline',
+        );
       }
     } catch (e) {
       // Revert on error
