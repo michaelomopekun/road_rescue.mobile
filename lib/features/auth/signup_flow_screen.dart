@@ -25,7 +25,6 @@ class SignupFlowScreen extends StatefulWidget {
 class _SignupFlowScreenState extends State<SignupFlowScreen> {
   late List<SignupStep> steps;
   int currentStepIndex = 0;
-  bool _isLoading = false;
 
   // Form data
   late Map<String, dynamic> formData;
@@ -88,9 +87,6 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
 
   void _completeSignup() async {
     if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-    });
 
     try {
       final roleString = widget.role == UserRole.driver ? 'DRIVER' : 'PROVIDER';
@@ -122,28 +118,13 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       }
     } on ValidationException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.messages.join(', '))));
-      setState(() {
-        _isLoading = false;
-      });
+      ToastService.showError(context, e.messages.join(', '));
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
-      setState(() {
-        _isLoading = false;
-      });
+      ToastService.showError(context, e.message);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration failed. Please try again.')),
-      );
-      setState(() {
-        _isLoading = false;
-      });
+      ToastService.showError(context, 'Registration failed. Please try again.');
     }
   }
 

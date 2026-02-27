@@ -172,8 +172,11 @@ class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
         ),
       ),
       bottomNavigationBar: DashboardBottomNavBar(
-        onHomeTap: () => {},
-        // TODO: Handle navigation based on index
+        selectedIndex: 0,
+        onTabChanged: (index) {
+          // Home tab only - no navigation needed
+        },
+        variant: DashboardNavVariant.lockedDashboard,
       ),
     );
   }

@@ -5,6 +5,11 @@ import 'theme/app_theme.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/auth/login_signup_screen.dart';
 import 'features/mechanic/mechanic_locked_dashboard.dart';
+import 'features/mechanic/mechanic_dashboard.dart';
+import 'features/mechanic/pages/wallet_page.dart';
+import 'features/mechanic/pages/map_page.dart';
+import 'features/mechanic/pages/history_page.dart';
+import 'features/mechanic/pages/profile_page.dart';
 import 'features/mechanic/verification/business_info_screen.dart';
 import 'features/mechanic/verification/address_step_screen.dart';
 import 'features/mechanic/verification/document_upload_screen.dart';
@@ -50,16 +55,9 @@ class MyApp extends StatelessWidget {
                 builder: (context, statusSnapshot) {
                   final status = statusSnapshot.data;
 
-                  // If approved, show full dashboard (placeholder)
+                  // If approved, show full dashboard
                   if (status == 'approved') {
-                    return Scaffold(
-                      appBar: AppBar(
-                        title: const Text('Full Mechanic Dashboard'),
-                      ),
-                      body: const Center(
-                        child: Text('Full Mechanic Dashboard - Coming Soon'),
-                      ),
-                    );
+                    return const MechanicDashboard();
                   }
 
                   // Otherwise show locked dashboard
@@ -88,6 +86,11 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginSignupScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
+        '/mechanic': (context) => const MechanicDashboard(),
+        '/mechanic/wallet': (context) => const MechanicWalletPage(),
+        '/mechanic/map': (context) => const MechanicMapPage(),
+        '/mechanic/history': (context) => const MechanicHistoryPage(),
+        '/mechanic/profile': (context) => const MechanicProfilePage(),
         '/mechanic-dashboard': (context) {
           final args =
               ModalRoute.of(context)?.settings.arguments

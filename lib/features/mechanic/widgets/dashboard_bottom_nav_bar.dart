@@ -1,35 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
-class DashboardBottomNavBar extends StatelessWidget {
-  final VoidCallback onHomeTap;
+enum DashboardNavVariant { lockedDashboard, fullDashboard }
 
-  const DashboardBottomNavBar({super.key, required this.onHomeTap});
+class DashboardBottomNavBar extends StatelessWidget {
+  final int selectedIndex;
+  final Function(int) onTabChanged;
+  final DashboardNavVariant variant;
+
+  const DashboardBottomNavBar({
+    super.key,
+    this.selectedIndex = 0,
+    required this.onTabChanged,
+    this.variant = DashboardNavVariant.fullDashboard,
+  });
+
+  List<BottomNavigationBarItem> _getItems() {
+    final allItems = [
+      BottomNavigationBarItem(icon: const Icon(Icons.home), label: 'Home'),
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.account_balance_wallet),
+        label: 'Wallet',
+      ),
+      BottomNavigationBarItem(icon: const Icon(Icons.map), label: 'Map'),
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.history),
+        label: 'History',
+      ),
+      BottomNavigationBarItem(icon: const Icon(Icons.person), label: 'Profile'),
+    ];
+
+    // For locked dashboard, only show Home tab
+    if (variant == DashboardNavVariant.lockedDashboard) {
+      return [allItems[0]];
+    }
+
+    // For full dashboard, show all tabs
+    return allItems;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BottomAppBar(
-      child: SizedBox(
-        height: 60,
-        child: Center(
-          child: GestureDetector(
-            onTap: onHomeTap,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.home, color: AppColors.primary),
-                const SizedBox(height: 4),
-                Text(
-                  'Home',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelSmall?.copyWith(color: AppColors.primary),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return BottomNavigationBar(
+      currentIndex: selectedIndex,
+      onTap: onTabChanged,
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: Colors.white,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: AppColors.textSecondary,
+      elevation: 2,
+      items: _getItems(),
     );
   }
 }
