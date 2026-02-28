@@ -29,22 +29,53 @@ class MechanicService {
     }
   }
 
-  /// Get provider request history
+  /// Get provider request history (for dashboard - limited)
   static Future<List<RecentJob>> getRequestHistory({int limit = 5}) async {
     try {
       final response = await ApiClient.get(
-        '/providers/me/request-history?limit=$limit',
+        '/providers/me/request-history?page=1&limit=$limit&status=COMPLETED',
         requiresAuth: true,
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final jobs =
-            (data['jobs'] as List<dynamic>?)
+            (data['data'] as List<dynamic>?)
                 ?.map((job) => RecentJob.fromJson(job as Map<String, dynamic>))
                 .toList() ??
             [];
         return jobs;
+      } else {
+        throw ApiException(
+          'Failed to fetch request history: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Error fetching request history: $e');
+    }
+  }
+
+  /// Get paginated request history with filters
+  /// Used for the history page to display all jobs with pagination
+  static Future<RequestHistoryPaginated> getRequestHistoryPaginated({
+    int page = 1,
+    int limit = 10,
+    String status = 'COMPLETED', // ASSIGNED, COMPLETED, or null for all
+  }) async {
+    try {
+      String url = '/providers/me/request-history?page=$page&limit=$limit';
+      if (status.isNotEmpty) {
+        url += '&status=$status';
+      }
+
+      final response = await ApiClient.get(url, requiresAuth: true);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return RequestHistoryPaginated.fromJson(data);
+      } else if (response.statusCode == 401) {
+        throw ApiException('Unauthorized - invalid or missing token');
       } else {
         throw ApiException(
           'Failed to fetch request history: ${response.statusCode}',
@@ -189,7 +220,9 @@ class MechanicService {
     String providerId,
   ) async {
     try {
-      print('[MechanicService] Loading provider dashboard from aggregated endpoint...');
+      print(
+        '[MechanicService] Loading provider dashboard from aggregated endpoint...',
+      );
 
       // Single unified request to backend endpoint
       final response = await ApiClient.get(
@@ -211,16 +244,18 @@ class MechanicService {
               dashboardResponse.availabilityStatus.status == 'AVAILABLE',
           monthlyEarnings: dashboardResponse.earnings.monthlyEarnings,
           recentJobs: dashboardResponse.recentJobs
-              .map((job) => RecentJob(
-                    id: job.id,
-                    customerId: job.driverId,
-                    customerName: job.driverName,
-                    serviceType: job.description,
-                    amount: (job.amount as num).toDouble(),
-                    status: job.status,
-                    completedAt: job.completedAt ?? job.assignedAt,
-                    avatarUrl: null,
-                  ))
+              .map(
+                (job) => RecentJob(
+                  id: job.id,
+                  customerId: job.driverId,
+                  customerName: job.driverName,
+                  serviceType: job.description,
+                  amount: (job.amount as num).toDouble(),
+                  status: job.status,
+                  completedAt: job.completedAt ?? job.assignedAt,
+                  avatarUrl: null,
+                ),
+              )
               .toList(),
         );
       } else if (response.statusCode == 401) {
@@ -358,7 +393,9 @@ class DashboardResponse {
 
   factory DashboardResponse.fromJson(Map<String, dynamic> json) {
     return DashboardResponse(
-      profile: DashboardProfile.fromJson(json['profile'] as Map<String, dynamic>),
+      profile: DashboardProfile.fromJson(
+        json['profile'] as Map<String, dynamic>,
+      ),
       verificationStatus: DashboardVerificationStatus.fromJson(
         json['verificationStatus'] as Map<String, dynamic>,
       ),
@@ -368,7 +405,8 @@ class DashboardResponse {
       earnings: DashboardEarnings.fromJson(
         json['earnings'] as Map<String, dynamic>,
       ),
-      recentJobs: (json['recentJobs'] as List<dynamic>?)
+      recentJobs:
+          (json['recentJobs'] as List<dynamic>?)
               ?.map((job) => DashboardJob.fromJson(job as Map<String, dynamic>))
               .toList() ??
           [],
@@ -411,10 +449,7 @@ class DashboardVerificationStatus {
   final String status; // APPROVED, PENDING, REJECTED
   final DateTime? verifiedAt;
 
-  DashboardVerificationStatus({
-    required this.status,
-    this.verifiedAt,
-  });
+  DashboardVerificationStatus({required this.status, this.verifiedAt});
 
   factory DashboardVerificationStatus.fromJson(Map<String, dynamic> json) {
     return DashboardVerificationStatus(
@@ -431,10 +466,7 @@ class DashboardAvailabilityStatus {
   final String status; // AVAILABLE, OFFLINE
   final DateTime updatedAt;
 
-  DashboardAvailabilityStatus({
-    required this.status,
-    required this.updatedAt,
-  });
+  DashboardAvailabilityStatus({required this.status, required this.updatedAt});
 
   factory DashboardAvailabilityStatus.fromJson(Map<String, dynamic> json) {
     return DashboardAvailabilityStatus(
@@ -515,6 +547,103 @@ class DashboardJob {
   }
 }
 
+/// Paginated request history response
+class RequestHistoryPaginated {
+  final List<HistoryJob> data;
+  final int page;
+  final int limit;
+  final int total;
+  final int totalPages;
+
+  RequestHistoryPaginated({
+    required this.data,
+    required this.page,
+    required this.limit,
+    required this.total,
+    required this.totalPages,
+  });
+
+  factory RequestHistoryPaginated.fromJson(Map<String, dynamic> json) {
+    return RequestHistoryPaginated(
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map((job) => HistoryJob.fromJson(job as Map<String, dynamic>))
+              .toList() ??
+          [],
+      page: json['page'] as int? ?? 1,
+      limit: json['limit'] as int? ?? 10,
+      total: json['total'] as int? ?? 0,
+      totalPages: json['totalPages'] as int? ?? 0,
+    );
+  }
+}
+
+/// Job from history endpoint (more detailed than RecentJob)
+class HistoryJob {
+  final String id;
+  final String driverId;
+  final String driverName;
+  final String driverPhone;
+  final String description;
+  final String location;
+  final double? latitude;
+  final double? longitude;
+  final String status; // ASSIGNED, COMPLETED
+  final DateTime assignedAt;
+  final DateTime? completedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  HistoryJob({
+    required this.id,
+    required this.driverId,
+    required this.driverName,
+    required this.driverPhone,
+    required this.description,
+    required this.location,
+    this.latitude,
+    this.longitude,
+    required this.status,
+    required this.assignedAt,
+    this.completedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  /// Convert to RecentJob for compatibility
+  RecentJob toRecentJob() {
+    return RecentJob(
+      id: id,
+      customerId: driverId,
+      customerName: driverName,
+      serviceType: description,
+      amount: 0.0, // History endpoint doesn't provide amount
+      status: status,
+      completedAt: completedAt ?? assignedAt,
+      avatarUrl: null,
+    );
+  }
+
+  factory HistoryJob.fromJson(Map<String, dynamic> json) {
+    return HistoryJob(
+      id: json['id'] as String,
+      driverId: json['driverId'] as String,
+      driverName: json['driverName'] as String,
+      driverPhone: json['driverPhone'] as String,
+      description: json['description'] as String,
+      location: json['location'] as String,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      status: json['status'] as String,
+      assignedAt: DateTime.parse(json['assignedAt'] as String),
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'] as String)
+          : null,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+    );
+  }
+}
 
 /// Aggregated dashboard data for the mechanic dashboard UI
 /// Contains all necessary information from the backend dashboard endpoint
@@ -539,4 +668,3 @@ class ProviderDashboardData {
   /// Get total earnings (from monthly earnings data)
   double get totalEarnings => monthlyEarnings;
 }
-
