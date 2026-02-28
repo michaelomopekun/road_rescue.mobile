@@ -14,8 +14,11 @@ class AppColors {
   // Accent / States
   static const accent = Color(0xFF22C55E);
   static const success = Color(0xFF22C55E);
+  static const toastSuccess = Color(0xFFE6F9F3);
   static const warning = Color(0xFFF59E0B);
+  static const toastWarning = Color(0xFFFFFBEB);
   static const error = Color(0xFFEF4444);
+  static const toastError = Color(0xFFFEF2F2);
 
   // Backgrounds
   // static const background = Color(0xFFFFFFFF);

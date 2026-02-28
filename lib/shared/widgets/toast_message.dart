@@ -79,11 +79,11 @@ class _ToastMessageState extends State<ToastMessage>
   Color _getBackgroundColor() {
     switch (widget.type) {
       case ToastType.success:
-        return AppColors.success.withValues(alpha: 0.1);
+        return AppColors.toastSuccess;
       case ToastType.warning:
-        return AppColors.warning.withValues(alpha: 0.1);
+        return AppColors.toastWarning;
       case ToastType.error:
-        return AppColors.error.withValues(alpha: 0.1);
+        return AppColors.toastError;
     }
   }
 
@@ -140,7 +140,7 @@ class _ToastMessageState extends State<ToastMessage>
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: _getCircleColor().withValues(alpha: 0.2),
+                  color: _getCircleColor(),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
