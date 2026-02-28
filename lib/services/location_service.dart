@@ -19,8 +19,7 @@ class LocationService {
   static const Duration _locationUpdateInterval = Duration(seconds: 10);
 
   static StreamSubscription<Position>? _locationSubscription;
-  static final _locationStreamController =
-      StreamController<LocationData>.broadcast();
+  static StreamController<LocationData>? _locationStreamController;
 
   /// Request location permissions
   static Future<bool> requestLocationPermission() async {
@@ -82,7 +81,10 @@ class LocationService {
 
   /// Start continuous location tracking
   static Stream<LocationData> startLocationTracking() {
-    _stopLocationTracking(); // Ensure no existing subscription
+    _stopLocationTracking(); // Ensure no existing subscription and close old controller
+
+    // Create a fresh controller
+    _locationStreamController = StreamController<LocationData>.broadcast();
 
     _locationSubscription =
         Geolocator.getPositionStream(
@@ -101,26 +103,27 @@ class LocationService {
                 position.timestamp.millisecondsSinceEpoch,
               ),
             );
-            _locationStreamController.add(locationData);
+            _locationStreamController?.add(locationData);
           },
           onError: (error) {
             print('Location tracking error: $error');
-            _locationStreamController.addError(error);
+            _locationStreamController?.addError(error);
           },
         );
 
-    return _locationStreamController.stream;
+    return _locationStreamController!.stream;
   }
 
   /// Stop location tracking
   static void _stopLocationTracking() {
     _locationSubscription?.cancel();
     _locationSubscription = null;
+    _locationStreamController?.close();
+    _locationStreamController = null;
   }
 
   /// Dispose all resources
   static void dispose() {
     _stopLocationTracking();
-    _locationStreamController.close();
   }
 }

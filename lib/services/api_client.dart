@@ -5,10 +5,11 @@ import 'package:road_rescue/services/exceptions.dart';
 import 'dart:convert';
 
 class ApiClient {
-  static String baseUrl = "http://10.0.2.2:3438";
+  static String baseUrl = "http://10.24.138.3:3438";
+  // "http://10.0.2.2:3438";
   // "localhost:3438";
   // dotenv.env['BASE_URL'] ??
-
+  // envProperties.getProperty("GOOGLE_MAPS_API_KEY", "")
   /// Performs a POST request with token injection
   static Future<http.Response> post(
     String endpoint, {

@@ -48,7 +48,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
         // Set mechanic name early
         if (!_disposed && mounted) {
           setState(() {
-            _mechanicName = userData?['name'] as String? ?? 'Mechanic';
+            _mechanicName = userData?['name'] as String? ?? '';
           });
         }
 
@@ -67,7 +67,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
               _currentJobCount = dashboardData.jobCount;
               _currentEarnings = dashboardData.totalEarnings;
               _isAvailable = dashboardData.isAvailable;
-              _mechanicName = dashboardData.businessName;
+              _mechanicName = dashboardData.businessName.substring(0, 5);
             });
             print('[MechanicDashboard] Dashboard data loaded successfully');
           }
@@ -243,7 +243,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Good day, $_mechanicName 👋',
+                      'Hello, $_mechanicName 👋',
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                   ],

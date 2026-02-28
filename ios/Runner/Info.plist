@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs your location to find and dispatch rescue services near you.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs your location in the background to track active rescue operations and provide real-time updates.</string>
+	<key>GMSApiKey</key>
+	<string>AIzaSyCYo01IGZe8SzUgMO3sswjv9W9lCsEbMQE</string>
 </dict>
 </plist>
