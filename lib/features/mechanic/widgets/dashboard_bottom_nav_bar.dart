@@ -49,6 +49,9 @@ class DashboardBottomNavBar extends StatelessWidget {
       selectedItemColor: AppColors.primary,
       unselectedItemColor: AppColors.textSecondary,
       elevation: 2,
+      selectedFontSize: 12,
+      unselectedFontSize: 12,
+      iconSize: 24,
       items: _getItems(),
     );
   }

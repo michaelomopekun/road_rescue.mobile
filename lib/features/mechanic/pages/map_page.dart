@@ -115,8 +115,8 @@ class _MechanicMapPageState extends State<MechanicMapPage> {
         circleId: const CircleId('accuracy_circle'),
         center: _currentLocation!,
         radius: 50, // 50 meters
-        fillColor: AppColors.primary.withOpacity(0.1),
-        strokeColor: AppColors.primary.withOpacity(0.3),
+        fillColor: AppColors.primary.withValues(alpha: 0.1),
+        strokeColor: AppColors.primary.withValues(alpha: 0.3),
         strokeWidth: 1,
       ),
     );
@@ -199,6 +199,7 @@ class _MechanicMapPageState extends State<MechanicMapPage> {
               circles: _circles,
               myLocationButtonEnabled: true,
               myLocationEnabled: true,
+              padding: const EdgeInsets.only(bottom: 220), // Push Google logo & controls up
             ),
 
           // Top controls
@@ -264,7 +265,7 @@ class _MechanicMapPageState extends State<MechanicMapPage> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, -2),
                         ),
