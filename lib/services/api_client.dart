@@ -5,7 +5,7 @@ import 'package:road_rescue/services/exceptions.dart';
 import 'dart:convert';
 
 class ApiClient {
-  static String baseUrl = "http://10.211.223.3:3438";
+  static String baseUrl = "http://10.47.233.3:3438";
   // "http://10.0.2.2:3438";
   // "localhost:3438";
   // dotenv.env['BASE_URL'] ??

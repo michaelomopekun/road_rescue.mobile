@@ -243,7 +243,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hello, $_mechanicName 👋',
+                      'Hi, $_mechanicName 👋',
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                   ],

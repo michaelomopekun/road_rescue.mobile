@@ -12,6 +12,7 @@ import 'features/mechanic/pages/wallet_page.dart';
 import 'features/mechanic/pages/map_page.dart';
 import 'features/mechanic/pages/history_page.dart';
 import 'features/mechanic/pages/profile_page.dart';
+import 'package:road_rescue/features/driver/driver_dashboard.dart';
 import 'features/mechanic/verification/business_info_screen.dart';
 import 'features/mechanic/verification/address_step_screen.dart';
 import 'features/mechanic/verification/document_upload_screen.dart';
@@ -117,7 +118,7 @@ class MyApp extends StatelessWidget {
                     },
                   );
                 } else if (authData.role == 'DRIVER') {
-                  return const DashboardPlaceholder(); // TODO: Replace with driver dashboard
+                  return const DriverDashboard();
                 }
               }
 
@@ -180,31 +181,6 @@ class MyApp extends StatelessWidget {
           );
         },
       },
-    );
-  }
-}
-
-/// Placeholder for dashboard - replace with actual dashboard widget
-class DashboardPlaceholder extends StatelessWidget {
-  const DashboardPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () async {
-            // Logout
-            await TokenService.clearToken();
-            authNotifier.notifyAuthStateChanged();
-            if (context.mounted) {
-              Navigator.pushReplacementNamed(context, '/login');
-            }
-          },
-          child: const Text('Logout'),
-        ),
-      ),
     );
   }
 }
