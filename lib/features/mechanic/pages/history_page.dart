@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
-import 'package:road_rescue/shared/widgets/request_list_item.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 import 'package:road_rescue/services/mechanic_service.dart';
 import 'package:road_rescue/services/toast_service.dart';
@@ -121,89 +120,115 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
     }
   }
 
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    String month = months[date.month - 1];
+    String day = date.day.toString();
+    int hour = date.hour;
+    String period = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    String minute = date.minute.toString().padLeft(2, '0');
+    return '$month $day, $hour:$minute $period';
+  }
+
+  IconData _getServiceIcon(String serviceType) {
+    final lower = serviceType.toLowerCase();
+    if (lower.contains('tire')) return Icons.tire_repair;
+    if (lower.contains('battery') || lower.contains('jumpstart')) return Icons.bolt;
+    if (lower.contains('lock') || lower.contains('key')) return Icons.lock_outline;
+    if (lower.contains('fuel')) return Icons.local_gas_station_outlined;
+    if (lower.contains('tow')) return Icons.car_repair;
+    return Icons.settings_outlined;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Job History'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
-      body: Column(
-        children: [
-          // Status filter tabs
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                _buildStatusTab('COMPLETED'),
-                const SizedBox(width: 8),
-                _buildStatusTab('ASSIGNED'),
-              ],
-            ),
-          ),
-          // Jobs list
-          Expanded(
-            child: _isLoading && _jobs.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : _jobs.isEmpty
-                ? Center(
-                    child: Text(
-                      'No $_selectedStatus jobs yet',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: _refreshHistory,
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(16),
-                      itemCount:
-                          _jobs.length + (_currentPage < _totalPages ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        // Show loading indicator at bottom when loading more
-                        if (index == _jobs.length) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        }
+    final bgColor = const Color(0xFFF3F8FB);
 
-                        final job = _jobs[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: AppColors.border,
-                              width: 1,
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: RequestListItem(
-                              customerName: job.driverName,
-                              serviceType: job.description,
-                              amount: job.location,
-                              status: job.status,
-                              avatarIcon: Icons.person,
-                              onTap: () {
-                                // Show job details
-                                _showJobDetails(job);
-                              },
-                            ),
-                          ),
-                        );
-                      },
+    return Scaffold(
+      backgroundColor: bgColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom App Bar Area
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'History',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF101828),
                     ),
                   ),
-          ),
-        ],
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFDFEAF4),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      color: Color(0xFF5A789A),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Status filter tabs
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              child: Row(
+                children: [
+                  Expanded(child: _buildStatusTab('COMPLETED', 'Completed')),
+                  Expanded(child: _buildStatusTab('CANCELLED', 'Cancelled')),
+                ],
+              ),
+            ),
+            
+            // Jobs list
+            Expanded(
+              child: _isLoading && _jobs.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : _jobs.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No ${_selectedStatus.toLowerCase()} jobs yet',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _refreshHistory,
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        itemCount: _jobs.length + (_currentPage < _totalPages ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          // Show loading indicator at bottom when loading more
+                          if (index == _jobs.length) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+
+                          final job = _jobs[index];
+                          return _buildJobCard(job);
+                        },
+                      ),
+                    ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: DashboardBottomNavBar(
         selectedIndex: _selectedNavIndex,
@@ -212,24 +237,164 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
     );
   }
 
-  /// Build status filter tab
-  Widget _buildStatusTab(String status) {
-    final isSelected = _selectedStatus == status;
+  // Segmented tab builder
+  Widget _buildStatusTab(String statusValue, String displayLabel) {
+    final isSelected = _selectedStatus == statusValue;
     return GestureDetector(
-      onTap: () => _changeStatus(status),
+      onTap: () => _changeStatus(statusValue),
+      behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.primary, width: 1),
-        ),
+        height: 48,
+        decoration: isSelected
+            ? BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              )
+            : null,
+        alignment: Alignment.center,
         child: Text(
-          status,
+          displayLabel,
           style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.primary,
-            fontWeight: FontWeight.w500,
+            color: isSelected ? const Color(0xFF101828) : const Color(0xFF64748B),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            fontSize: 15,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJobCard(HistoryJob job) {
+    return GestureDetector(
+      onTap: () {
+        _showJobDetails(job);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFE2E8F0).withValues(alpha: 0.6),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left avatar
+            Container(
+              width: 50,
+              height: 50,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.person_outline,
+                color: Color(0xFF94A3B8),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            
+            // Middle Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    job.driverName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _formatDate(job.completedAt ?? job.assignedAt),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDFEAF4),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _getServiceIcon(job.description),
+                          size: 14,
+                          color: const Color(0xFF5A789A),
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            job.description,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF5A789A),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Trailing price and status
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '\$${job.amount.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: job.status.toLowerCase() == 'completed'
+                        ? const Color(0xFF22C55E)
+                        : (job.status.toLowerCase() == 'cancelled' ? const Color(0xFFEF4444) : const Color(0xFFF59E0B)),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -239,6 +404,10 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
   void _showJobDetails(HistoryJob job) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (context) => Container(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -250,7 +419,9 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
               children: [
                 Text(
                   'Job Details',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -264,9 +435,10 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
             _detailRow('Service', job.description),
             _detailRow('Location', job.location),
             _detailRow('Status', job.status),
-            _detailRow('Assigned', job.assignedAt.toString().split('.')[0]),
+            _detailRow('Amount', '\$${job.amount.toStringAsFixed(2)}'),
+            _detailRow('Assigned', _formatDate(job.assignedAt)),
             if (job.completedAt != null)
-              _detailRow('Completed', job.completedAt.toString().split('.')[0]),
+              _detailRow('Completed', _formatDate(job.completedAt!)),
           ],
         ),
       ),
@@ -280,12 +452,12 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF64748B))),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: TextStyle(color: Colors.grey[600]),
+              style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.w500),
             ),
           ),
         ],

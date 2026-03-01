@@ -334,7 +334,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.mail_outline, size: 48, color: AppColors.border),
+                    Icon(Icons.mail_outline, size: 48, color: AppColors.primary),
                     const SizedBox(height: 12),
                     Text(
                       'Waiting for new requests...',
