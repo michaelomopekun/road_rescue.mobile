@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
-import 'package:road_rescue/theme/app_colors.dart';
 
 class Transaction {
   final String id;
@@ -8,8 +7,7 @@ class Transaction {
   final String subtitle;
   final double amount;
   final bool isCredit;
-  final String icon;
-  final DateTime timestamp;
+  final IconData icon;
 
   Transaction({
     required this.id,
@@ -18,7 +16,6 @@ class Transaction {
     required this.amount,
     required this.isCredit,
     required this.icon,
-    required this.timestamp,
   });
 }
 
@@ -29,12 +26,10 @@ class MechanicWalletPage extends StatefulWidget {
   State<MechanicWalletPage> createState() => _MechanicWalletPageState();
 }
 
-class _MechanicWalletPageState extends State<MechanicWalletPage>
-    with SingleTickerProviderStateMixin {
+class _MechanicWalletPageState extends State<MechanicWalletPage> {
   int _selectedNavIndex = 1;
-  late TabController _tabController;
 
-  // Mock transactions
+  // Mock transactions based on the design
   final List<Transaction> _mockTransactions = [
     Transaction(
       id: '1',
@@ -42,8 +37,7 @@ class _MechanicWalletPageState extends State<MechanicWalletPage>
       subtitle: 'Today, 2:30 PM',
       amount: 85.00,
       isCredit: true,
-      icon: '🔧',
-      timestamp: DateTime.now(),
+      icon: Icons.handyman,
     ),
     Transaction(
       id: '2',
@@ -51,8 +45,7 @@ class _MechanicWalletPageState extends State<MechanicWalletPage>
       subtitle: 'Yesterday',
       amount: 250.00,
       isCredit: false,
-      icon: '🏦',
-      timestamp: DateTime.now().subtract(const Duration(days: 1)),
+      icon: Icons.arrow_outward,
     ),
     Transaction(
       id: '3',
@@ -60,8 +53,7 @@ class _MechanicWalletPageState extends State<MechanicWalletPage>
       subtitle: 'Oct 24, 2023',
       amount: 120.00,
       isCredit: true,
-      icon: '🔧',
-      timestamp: DateTime(2023, 10, 24),
+      icon: Icons.handyman,
     ),
     Transaction(
       id: '4',
@@ -69,40 +61,9 @@ class _MechanicWalletPageState extends State<MechanicWalletPage>
       subtitle: 'Oct 22, 2023',
       amount: 45.00,
       isCredit: true,
-      icon: '🔧',
-      timestamp: DateTime(2023, 10, 22),
-    ),
-    Transaction(
-      id: '5',
-      title: 'Withdrawal to Chase Bank',
-      subtitle: 'Oct 20, 2023',
-      amount: 300.00,
-      isCredit: false,
-      icon: '🏦',
-      timestamp: DateTime(2023, 10, 20),
-    ),
-    Transaction(
-      id: '6',
-      title: 'Job Payout - Tire Replacement',
-      subtitle: 'Oct 18, 2023',
-      amount: 65.50,
-      isCredit: true,
-      icon: '🔧',
-      timestamp: DateTime(2023, 10, 18),
+      icon: Icons.handyman,
     ),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
 
   void _handleNavigation(int index) {
     setState(() {
@@ -130,303 +91,173 @@ class _MechanicWalletPageState extends State<MechanicWalletPage>
 
   @override
   Widget build(BuildContext context) {
+    const bgColor = Color(0xFFF2F9FA);
+    const textColor = Color(0xFF1B2A3B);
+    const subTextColor = Color(0xFF7B8A98);
+
     return Scaffold(
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              expandedHeight: 280,
-              pinned: true,
-              elevation: 0,
-              backgroundColor: AppColors.primary,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  color: AppColors.primary,
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Wallet',
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.more_vert,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {},
-                              ),
-                            ],
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: textColor),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              _handleNavigation(0);
+            }
+          },
+        ),
+        title: const Text(
+          'Wallet',
+          style: TextStyle(
+            color: textColor,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Balance Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF2B4C59), // dark teal
+                    Color(0xFF86B8D1), // light blue
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF2B4C59).withValues(alpha: 0.2),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Available Balance',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '\$842.50',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Withdraw funds feature coming soon'),
                           ),
-                          const SizedBox(height: 24),
-                          // Balance Card
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppColors.primary.withOpacity(0.9),
-                                  AppColors.primary,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Available Balance',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white70,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                const Text(
-                                  '\$842.50',
-                                  style: TextStyle(
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Withdraw funds feature coming soon',
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: AppColors.primary,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    child: const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.account_balance_wallet),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Withdraw Funds',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.payments_outlined,
+                        color: Color(0xFF2B4C59),
+                      ),
+                      label: const Text(
+                        'Withdraw Funds',
+                        style: TextStyle(
+                          color: Color(0xFF2B4C59),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(60),
-                child: Container(
-                  color: Colors.white,
-                  child: TabBar(
-                    controller: _tabController,
-                    tabs: const [
-                      Tab(
-                        icon: Icon(Icons.account_balance),
-                        text: 'Bank Details',
-                      ),
-                      Tab(icon: Icon(Icons.history), text: 'Payout History'),
-                      Tab(icon: Icon(Icons.bar_chart), text: 'Earnings Report'),
-                    ],
-                    indicatorColor: AppColors.primary,
-                    labelColor: AppColors.primary,
-                    unselectedLabelColor: AppColors.textSecondary,
-                    labelStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    unselectedLabelStyle: const TextStyle(
+            ),
+            const SizedBox(height: 32),
+
+            // Action Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildActionButton(Icons.account_balance, 'Bank\nDetails'),
+                _buildActionButton(Icons.history, 'Payout\nHistory'),
+                _buildActionButton(
+                  Icons.insert_chart_outlined,
+                  'Earnings\nReport',
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 32),
+
+            // Recent Transactions Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Recent Transactions',
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(50, 30),
+                    alignment: Alignment.centerRight,
+                  ),
+                  child: const Text(
+                    'See All',
+                    style: TextStyle(
+                      color: Color(0xFF14A8C4),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ];
-        },
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            // Bank Details Tab
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Your Bank Account',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[200]!),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildDetailRow('Bank Name', 'Chase Bank'),
-                        const SizedBox(height: 12),
-                        _buildDetailRow('Account Holder', 'John Doe'),
-                        const SizedBox(height: 12),
-                        _buildDetailRow('Account Number', '••••••••7890'),
-                        const SizedBox(height: 12),
-                        _buildDetailRow('Routing Number', '••••••••5432'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Update bank account feature coming soon',
-                            ),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text('Update Bank Account'),
-                    ),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 16),
+
+            // Transactions List
+            ..._mockTransactions.map(
+              (tx) => _buildTransactionCard(tx, textColor, subTextColor),
             ),
 
-            // Payout History Tab
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Recent Transactions',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 16),
-                  ..._mockTransactions.map((transaction) {
-                    return _buildTransactionTile(transaction);
-                  }),
-                ],
-              ),
-            ),
-
-            // Earnings Report Tab
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'This Month',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildEarningsCard(
-                    'Total Earnings',
-                    '\$1,245.50',
-                    Colors.green,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildEarningsCard(
-                    'Number of Jobs',
-                    '18 jobs',
-                    AppColors.primary,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildEarningsCard(
-                    'Average Job Value',
-                    '\$69.19',
-                    Colors.orange,
-                  ),
-                  const SizedBox(height: 28),
-                  const Text(
-                    'Last 6 Months',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[200]!),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _buildMonthEarnings('February', '\$1,245.50'),
-                        _buildMonthEarnings('January', '\$980.00'),
-                        _buildMonthEarnings('December', '\$1,450.25'),
-                        _buildMonthEarnings('November', '\$825.75'),
-                        _buildMonthEarnings('October', '\$1,125.00'),
-                        _buildMonthEarnings('September', '\$950.50'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -437,143 +268,111 @@ class _MechanicWalletPageState extends State<MechanicWalletPage>
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildActionButton(IconData icon, String label) {
+    return Column(
       children: [
+        Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Icon(icon, color: const Color(0xFF2B4C59), size: 28),
+        ),
+        const SizedBox(height: 12),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 14,
-            color: AppColors.textSecondary,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Color(0xFF5A6B7C),
+            fontSize: 13,
             fontWeight: FontWeight.w500,
+            height: 1.3,
           ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ],
     );
   }
 
-  Widget _buildTransactionTile(Transaction transaction) {
+  Widget _buildTransactionCard(
+    Transaction tx,
+    Color textColor,
+    Color subTextColor,
+  ) {
+    final bool isCredit = tx.isCredit;
+    final Color iconBgColor = isCredit
+        ? const Color(0xFFEDF7F1)
+        : const Color(0xFFF2F4F7);
+    final Color iconColor = isCredit
+        ? const Color(0xFF2EB774)
+        : const Color(0xFF7A8B99);
+    final Color amountColor = isCredit ? const Color(0xFF2EB774) : Colors.black;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(12),
       child: Row(
         children: [
           Container(
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: transaction.isCredit
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.orange.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: iconBgColor,
+              shape: BoxShape.circle,
             ),
-            child: Center(
-              child: Text(
-                transaction.icon,
-                style: const TextStyle(fontSize: 24),
-              ),
-            ),
+            child: Icon(tx.icon, color: iconColor, size: 22),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction.title,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  tx.title,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  transaction.subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
+                  tx.subtitle,
+                  style: TextStyle(color: subTextColor, fontSize: 13),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 8),
           Text(
-            '${transaction.isCredit ? '+' : '-'}\$${transaction.amount.toStringAsFixed(2)}',
+            '${isCredit ? '+' : '-'}\$${tx.amount.toStringAsFixed(2)}',
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: transaction.isCredit ? Colors.green : Colors.orange,
+              color: amountColor,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildEarningsCard(String title, String value, Color color) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMonthEarnings(String month, String earnings) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              month,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-            Text(
-              earnings,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-      ],
     );
   }
 }

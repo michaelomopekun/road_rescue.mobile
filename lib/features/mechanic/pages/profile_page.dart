@@ -28,9 +28,9 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
     final email = await TokenService.getUserEmail();
 
     setState(() {
-      _mechanicName = userData?['name'] as String? ?? 'Mechanic';
-      _mechanicEmail = email ?? 'Not provided';
-      _mechanicPhone = userData?['phone'] as String? ?? 'Not provided';
+      _mechanicName = userData?['name'] as String? ?? 'Michael Scott';
+      _mechanicEmail = email ?? 'michael.scott@example.com';
+      _mechanicPhone = userData?['phone'] as String? ?? '+1 555-123-4567';
     });
   }
 
@@ -78,6 +78,7 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
     );
 
     if (confirmed == true) {
+      if (!mounted) return;
       ToastService.showSuccess(context, 'Logged out successfully');
       await TokenService.clearAuthData();
       if (mounted) {
@@ -90,212 +91,295 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    const bgColor = Color(0xFFF2F9FA);
+    const textColor = Color(0xFF1B2A3B);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile Header
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border, width: 1),
+      backgroundColor: bgColor,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            pinned: true,
+            expandedHeight: 330, // Adjusted height to match design
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
               ),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: AppColors.border, width: 2),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(32),
+                    bottomRight: Radius.circular(32),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 60),
+                    // Profile Image with Verification Badge
+                    SizedBox(
+                      width: 130,
+                      height: 130,
+                      child: Stack(
+                        children: [
+                          Align(
+                            alignment: Alignment.center,
+                            child: Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFEDB882),
+                                border: Border.all(
+                                  color: const Color(0xFFF2F9FA),
+                                  width: 4,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.person,
+                                size: 80,
+                                color: const Color(0xFFDCA776),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 12,
+                            right: 12,
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF00C8D9),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 3,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.verified,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _mechanicName ?? 'Michael Scott',
+                      style: const TextStyle(
+                        color: textColor,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Senior Mechanic',
+                      style: TextStyle(
+                        color: Color(0xFFAAB8C2),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 children: [
+                  // Primary Actions Card
                   Container(
-                    width: 80,
-                    height: 80,
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      border: Border.all(color: AppColors.border, width: 2),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: Icon(
-                      Icons.person,
-                      size: 40,
-                      color: AppColors.secondary,
+                    child: Column(
+                      children: [
+                        _buildSettingsRow(
+                          icon: Icons.person_outline,
+                          iconColor: const Color(0xFF3282B8),
+                          iconBgColor: const Color(0xFFF0F6FA),
+                          title: 'Personal Information',
+                        ),
+                        _buildDivider(),
+                        _buildSettingsRow(
+                          icon: Icons.business,
+                          iconColor: const Color(0xFFE87A4F),
+                          iconBgColor: const Color(0xFFFDF2ED),
+                          title: 'Workshop Details',
+                        ),
+                        _buildDivider(),
+                        _buildSettingsRow(
+                          icon: Icons.credit_card,
+                          iconColor: const Color(0xFF2EB774),
+                          iconBgColor: const Color(0xFFEBF7F1),
+                          title: 'Payout Methods',
+                        ),
+                        _buildDivider(),
+                        _buildSettingsRow(
+                          icon: Icons.badge_outlined,
+                          iconColor: const Color(0xFF9B51E0),
+                          iconBgColor: const Color(0xFFF5EEFC),
+                          title: 'Documents & Verification',
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _mechanicName ?? 'Mechanic',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+
+                  const SizedBox(height: 24),
+
+                  // Secondary Actions Card
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: AppColors.border, width: 2),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        _buildSettingsRow(
+                          icon: Icons.notifications_none_outlined,
+                          iconColor: const Color(0xFF5A6B7C),
+                          iconBgColor: const Color(0xFFF2F4F7),
+                          title: 'Notifications',
+                        ),
+                        _buildDivider(),
+                        _buildSettingsRow(
+                          icon: Icons.help_outline,
+                          iconColor: const Color(0xFF5A6B7C),
+                          iconBgColor: const Color(0xFFF2F4F7),
+                          title: 'Help & Support',
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _mechanicEmail ?? 'Email not available',
-                    style: const TextStyle(
+
+                  const SizedBox(height: 32),
+
+                  // Logout Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: OutlinedButton.icon(
+                      onPressed: _logout,
+                      icon: const Icon(Icons.logout, color: Color(0xFFE55858)),
+                      label: const Text(
+                        'Logout',
+                        style: TextStyle(
+                          color: Color(0xFFE55858),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(color: Color(0xFFFDECEC)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // App Version
+                  const Text(
+                    'RoadRescue Mechanic App v2.4.0',
+                    style: TextStyle(
+                      color: Color(0xFFAAB8C2),
                       fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _mechanicPhone ?? 'Phone not available',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
-
-            const SizedBox(height: 24),
-
-            // Settings Section
-            Text(
-              'Settings',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontSize: 16,
-                color: AppColors.textPrimary,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Edit Profile
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border, width: 1),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.edit, size: 20, color: AppColors.primary),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Edit Profile',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: AppColors.textSecondary,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Settings
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border, width: 1),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.settings, size: 20, color: AppColors.primary),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Settings & Preferences',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: AppColors.textSecondary,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Help & Support
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border, width: 1),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.help, size: 20, color: AppColors.primary),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Help & Support',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: AppColors.textSecondary,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Logout Button
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: _logout,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.error,
-                ),
-                child: const Text('Logout'),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: DashboardBottomNavBar(
         selectedIndex: _selectedNavIndex,
         onTabChanged: _handleNavigation,
       ),
+    );
+  }
+
+  Widget _buildSettingsRow({
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBgColor,
+    required String title,
+  }) {
+    return InkWell(
+      onTap: () {},
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xFF1B2A3B),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Color(0xFFCDD6DD), size: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      margin: const EdgeInsets.only(left: 76, right: 20),
+      color: const Color(0xFFF2F4F7),
     );
   }
 }
