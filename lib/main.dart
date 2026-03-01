@@ -13,6 +13,10 @@ import 'features/mechanic/pages/map_page.dart';
 import 'features/mechanic/pages/history_page.dart';
 import 'features/mechanic/pages/profile_page.dart';
 import 'package:road_rescue/features/driver/driver_dashboard.dart';
+import 'package:road_rescue/features/driver/pages/wallet_page.dart';
+import 'package:road_rescue/features/driver/pages/map_page.dart';
+import 'package:road_rescue/features/driver/pages/history_page.dart';
+import 'package:road_rescue/features/driver/pages/profile_page.dart';
 import 'features/mechanic/verification/business_info_screen.dart';
 import 'features/mechanic/verification/address_step_screen.dart';
 import 'features/mechanic/verification/document_upload_screen.dart';
@@ -138,6 +142,10 @@ class MyApp extends StatelessWidget {
         '/mechanic/map': (context) => const MechanicMapPage(),
         '/mechanic/history': (context) => const MechanicHistoryPage(),
         '/mechanic/profile': (context) => const MechanicProfilePage(),
+        '/driver/wallet': (context) => const DriverWalletPage(),
+        '/driver/map': (context) => const DriverMapPage(),
+        '/driver/history': (context) => const DriverHistoryPage(),
+        '/driver/profile': (context) => const DriverProfilePage(),
         '/mechanic-dashboard': (context) {
           final args =
               ModalRoute.of(context)?.settings.arguments

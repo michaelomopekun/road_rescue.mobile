@@ -46,16 +46,16 @@ class _DriverDashboardState extends State<DriverDashboard> {
         // Already on Home
         break;
       case 1:
-        // TODO: Navigate to driver wallet
+        Navigator.of(context).pushReplacementNamed('/driver/wallet');
         break;
       case 2:
-        // TODO: Navigate to driver map
+        Navigator.of(context).pushReplacementNamed('/driver/map');
         break;
       case 3:
-        // TODO: Navigate to driver history
+        Navigator.of(context).pushReplacementNamed('/driver/history');
         break;
       case 4:
-        // TODO: Navigate to driver profile
+        Navigator.of(context).pushReplacementNamed('/driver/profile');
         break;
     }
   }
