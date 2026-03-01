@@ -3,6 +3,7 @@ import 'package:road_rescue/theme/app_colors.dart';
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/features/driver/widgets/quick_action_button.dart';
 import 'package:road_rescue/features/driver/widgets/recent_activity_card.dart';
+import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
 
 class DriverDashboard extends StatefulWidget {
   const DriverDashboard({super.key});
@@ -13,6 +14,8 @@ class DriverDashboard extends StatefulWidget {
 
 class _DriverDashboardState extends State<DriverDashboard> {
   String _driverName = '';
+  int _selectedNavIndex = 0;
+
   
   @override
   void initState() {
@@ -30,6 +33,30 @@ class _DriverDashboardState extends State<DriverDashboard> {
           _driverName = _driverName.split(' ').first;
         }
       });
+    }
+  }
+
+  void _handleNavigation(int index) {
+    setState(() {
+      _selectedNavIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        // Already on Home
+        break;
+      case 1:
+        // TODO: Navigate to driver wallet
+        break;
+      case 2:
+        // TODO: Navigate to driver map
+        break;
+      case 3:
+        // TODO: Navigate to driver history
+        break;
+      case 4:
+        // TODO: Navigate to driver profile
+        break;
     }
   }
 
@@ -302,6 +329,11 @@ class _DriverDashboardState extends State<DriverDashboard> {
           ),
         ),
       ),
+      bottomNavigationBar: DashboardBottomNavBar(
+        selectedIndex: _selectedNavIndex,
+        onTabChanged: _handleNavigation,
+      ),
     );
   }
 }
+
