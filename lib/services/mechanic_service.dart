@@ -589,6 +589,7 @@ class HistoryJob {
   final double? latitude;
   final double? longitude;
   final String status; // ASSIGNED, COMPLETED
+  final double amount;
   final DateTime assignedAt;
   final DateTime? completedAt;
   final DateTime createdAt;
@@ -604,6 +605,7 @@ class HistoryJob {
     this.latitude,
     this.longitude,
     required this.status,
+    this.amount = 0.0,
     required this.assignedAt,
     this.completedAt,
     required this.createdAt,
@@ -617,7 +619,7 @@ class HistoryJob {
       customerId: driverId,
       customerName: driverName,
       serviceType: description,
-      amount: 0.0, // History endpoint doesn't provide amount
+      amount: amount,
       status: status,
       completedAt: completedAt ?? assignedAt,
       avatarUrl: null,
@@ -635,6 +637,7 @@ class HistoryJob {
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       status: json['status'] as String,
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       assignedAt: DateTime.parse(json['assignedAt'] as String),
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'] as String)

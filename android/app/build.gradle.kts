@@ -9,7 +9,7 @@ plugins {
 }
 
 // Load .env file
-val envFile = File(rootProject.rootDir, ".env")
+val envFile = File(rootProject.rootDir.parentFile, ".env")
 val envProperties = Properties()
 if (envFile.exists()) {
     envFile.inputStream().use { envProperties.load(it) }
