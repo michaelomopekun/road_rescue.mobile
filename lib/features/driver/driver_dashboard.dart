@@ -4,6 +4,7 @@ import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/features/driver/widgets/quick_action_button.dart';
 import 'package:road_rescue/features/driver/widgets/recent_activity_card.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
+import 'package:road_rescue/features/driver/pages/searching_mechanic_page.dart';
 
 class DriverDashboard extends StatefulWidget {
   const DriverDashboard({super.key});
@@ -181,7 +182,14 @@ class _DriverDashboardState extends State<DriverDashboard> {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          // TODO: Handle request mechanic
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const SearchingMechanicPage(
+                                issueType: 'General Repair',
+                                issueIcon: Icons.handyman,
+                              ),
+                            ),
+                          );
                         },
                         icon: const Icon(
                           Icons.build,
@@ -229,28 +237,64 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     label: 'Battery',
                     backgroundColor: const Color(0xFFFFF0E6),
                     iconColor: const Color(0xFFF97316),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const SearchingMechanicPage(
+                            issueType: 'Battery Issue',
+                            issueIcon: Icons.battery_charging_full,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   QuickActionButton(
                     icon: Icons.tire_repair,
                     label: 'Flat Tire',
                     backgroundColor: const Color(0xFFE0E7FF),
                     iconColor: const Color(0xFF4F46E5),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const SearchingMechanicPage(
+                            issueType: 'Flat Tire',
+                            issueIcon: Icons.tire_repair,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   QuickActionButton(
                     icon: Icons.car_repair,
                     label: 'Engine',
                     backgroundColor: const Color(0xFFFFE4E6),
                     iconColor: const Color(0xFFE11D48),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const SearchingMechanicPage(
+                            issueType: 'Engine Issue',
+                            issueIcon: Icons.car_repair,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   QuickActionButton(
                     icon: Icons.rv_hookup,
                     label: 'Tow',
                     backgroundColor: Colors.white,
                     iconColor: AppColors.primary,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const SearchingMechanicPage(
+                            issueType: 'Tow Request',
+                            issueIcon: Icons.rv_hookup,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
