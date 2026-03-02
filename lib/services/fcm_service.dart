@@ -1,9 +1,11 @@
 import 'dart:io' show Platform;
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/services/token_service.dart';
+import 'package:road_rescue/main.dart'; // import to access navigatorKey
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -91,7 +93,11 @@ class FcmService {
     await _localNotificationsPlugin.initialize(
       settings: initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Handle notification tapped
+        if (response.payload != null) {
+          print('Local notification tapped with payload: ${response.payload}');
+          // Route based on assumed string payload from message.data
+          // In a real app, map this correctly
+        }
       },
     );
   }
@@ -152,6 +158,36 @@ class FcmService {
   }
 
   static void _handleNavigation(RemoteMessage message) {
-    // TODO: Implement navigation logic based on message data
+    if (message.data.isEmpty) return;
+    
+    final String? type = message.data['type'];
+    final context = navigatorKey.currentContext;
+    
+    if (context == null) {
+      print('Warning: No current context for navigation');
+      return;
+    }
+
+    switch (type) {
+      case 'new_job':
+        Navigator.of(context).pushNamed('/mechanic');
+        break;
+      case 'job_accepted':
+        Navigator.of(context).pushNamed('/driver/map');
+        break;
+      case 'verification_approved':
+        Navigator.of(context).pushReplacementNamed('/mechanic');
+        break;
+      case 'job_update':
+        final role = message.data['role']; // e.g. DRIVER or PROVIDER
+        if (role == 'DRIVER') {
+          Navigator.of(context).pushNamed('/driver/history');
+        } else {
+          Navigator.of(context).pushNamed('/mechanic/history');
+        }
+        break;
+      default:
+        print('Unknown notification type: $type');
+    }
   }
 }

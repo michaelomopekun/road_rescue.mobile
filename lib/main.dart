@@ -3,7 +3,7 @@ import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/mechanic_service.dart';
 import 'package:road_rescue/services/fcm_service.dart';
 import 'package:firebase_core/firebase_core.dart';
-// import 'firebase_options.dart'; // TODO: Uncomment after running `flutterfire configure`
+import 'firebase_options.dart';
 import 'package:road_rescue/services/auth_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
@@ -25,12 +25,12 @@ import 'features/mechanic/verification/address_step_screen.dart';
 import 'features/mechanic/verification/document_upload_screen.dart';
 import 'features/mechanic/verification/verification_pending_screen.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // TODO: Run `flutterfire configure` in your terminal to generate firebase_options.dart,
-  // then uncomment the following lines to initialize Firebase and FCM.
-  /*
+  // Initialize Firebase and FCM
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -39,7 +39,6 @@ void main() async {
   } catch (e) {
     print('Failed to initialize Firebase: $e');
   }
-  */
 
   final prefs = await SharedPreferences.getInstance();
   final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
@@ -87,6 +86,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: ListenableBuilder(

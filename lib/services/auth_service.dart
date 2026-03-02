@@ -202,6 +202,13 @@ class AuthService {
 
   /// Logout user (clear local token)
   static Future<void> logout() async {
+    // Attempt to unregister FCM token before logging out locally
+    try {
+      await FcmService.registerDevice(null);
+    } catch (e) {
+      print('Failed to unregister FCM token during logout: $e');
+    }
+
     await TokenService.clearToken();
     authNotifier.notifyAuthStateChanged();
   }
