@@ -4,6 +4,8 @@ import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/exceptions.dart';
 import 'package:road_rescue/services/auth_notifier.dart';
+import 'package:road_rescue/services/fcm_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 /// Service for handling authentication API calls
 class AuthService {
@@ -140,6 +142,14 @@ class AuthService {
         // Notify listeners that auth state has changed
         authNotifier.notifyAuthStateChanged();
         print('[AuthService] Auth notifier triggered');
+
+        try {
+          // Register device for push notifications
+          final fcmToken = await FirebaseMessaging.instance.getToken();
+          await FcmService.registerDevice(fcmToken);
+        } catch(e) {
+          print('Failed to register FCM during login: $e');
+        }
 
         return loginResponse;
       } else if (response.statusCode == 401) {

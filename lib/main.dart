@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/mechanic_service.dart';
+import 'package:road_rescue/services/fcm_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+// import 'firebase_options.dart'; // TODO: Uncomment after running `flutterfire configure`
 import 'package:road_rescue/services/auth_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
@@ -24,7 +27,20 @@ import 'features/mechanic/verification/verification_pending_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsFlutterBinding.ensureInitialized();
+
+  // TODO: Run `flutterfire configure` in your terminal to generate firebase_options.dart,
+  // then uncomment the following lines to initialize Firebase and FCM.
+  /*
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    await FcmService.initialize();
+  } catch (e) {
+    print('Failed to initialize Firebase: $e');
+  }
+  */
+
   final prefs = await SharedPreferences.getInstance();
   final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
 
