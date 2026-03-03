@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 import 'package:road_rescue/services/token_service.dart';
+import 'package:road_rescue/services/driver_service.dart';
 import 'package:road_rescue/features/driver/widgets/quick_action_button.dart';
 import 'package:road_rescue/features/driver/widgets/recent_activity_card.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
@@ -16,11 +17,14 @@ class DriverDashboard extends StatefulWidget {
 class _DriverDashboardState extends State<DriverDashboard> {
   String _driverName = '';
   int _selectedNavIndex = 0;
+  List<DriverHistoryRequest> _recentActivity = [];
+  bool _isLoadingActivity = true;
 
   @override
   void initState() {
     super.initState();
     _loadDriverInfo();
+    _loadRecentActivity();
   }
 
   Future<void> _loadDriverInfo() async {
@@ -34,6 +38,99 @@ class _DriverDashboardState extends State<DriverDashboard> {
         }
       });
     }
+  }
+
+  Future<void> _loadRecentActivity() async {
+    try {
+      final history = await DriverService.getRecentRequestHistory(limit: 3);
+      if (mounted) {
+        setState(() {
+          _recentActivity = history;
+          _isLoadingActivity = false;
+        });
+      }
+    } catch (e) {
+      print('[DriverDashboard] Error loading recent activity: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingActivity = false;
+        });
+      }
+    }
+  }
+
+  IconData _getServiceIcon(String serviceType) {
+    switch (serviceType.toUpperCase()) {
+      case 'FLAT_TIRE':
+        return Icons.tire_repair;
+      case 'BATTERY_JUMP':
+        return Icons.battery_charging_full;
+      case 'TOW':
+        return Icons.directions_car;
+      case 'ENGINE':
+        return Icons.car_repair;
+      case 'LOCKOUT':
+        return Icons.vpn_key;
+      case 'FUEL_DELIVERY':
+        return Icons.local_gas_station_outlined;
+      default:
+        return Icons.handyman;
+    }
+  }
+
+  Color _getServiceIconBgColor(String serviceType) {
+    switch (serviceType.toUpperCase()) {
+      case 'FLAT_TIRE':
+        return const Color(0xFFE0E7FF);
+      case 'BATTERY_JUMP':
+        return const Color(0xFFFFF0E6);
+      case 'TOW':
+        return const Color(0xFFF1F5F9);
+      case 'ENGINE':
+        return const Color(0xFFFFE4E6);
+      case 'LOCKOUT':
+        return const Color(0xFFF3E8FF);
+      case 'FUEL_DELIVERY':
+        return const Color(0xFFE6F9F3);
+      default:
+        return const Color(0xFFDFEAF4);
+    }
+  }
+
+  Color _getServiceIconColor(String serviceType) {
+    switch (serviceType.toUpperCase()) {
+      case 'FLAT_TIRE':
+        return const Color(0xFF4F46E5);
+      case 'BATTERY_JUMP':
+        return const Color(0xFFF97316);
+      case 'TOW':
+        return const Color(0xFF94A3B8);
+      case 'ENGINE':
+        return const Color(0xFFE11D48);
+      case 'LOCKOUT':
+        return const Color(0xFF9333EA);
+      case 'FUEL_DELIVERY':
+        return const Color(0xFF22C55E);
+      default:
+        return const Color(0xFF5A789A);
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    String weekday = weekdays[date.weekday - 1];
+    String day = date.day.toString().padLeft(2, '0');
+    String month = months[date.month - 1];
+    int hour = date.hour;
+    String period = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    String minute = date.minute.toString().padLeft(2, '0');
+    return '$weekday, $day $month \u2022 $hour:$minute $period';
   }
 
   void _handleNavigation(int index) {
@@ -310,7 +407,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).pushReplacementNamed('/driver/history');
+                    },
                     child: const Text(
                       'View History',
                       style: TextStyle(
@@ -323,51 +422,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                 ],
               ),
               const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors
-                      .transparent, // Removing the overall border since the cards have their own borders
-                ),
-                child: Column(
-                  children: [
-                    RecentActivityCard(
-                      icon: Icons.tire_repair,
-                      serviceName: 'Flat Tire',
-                      date: 'Mon, 12 Oct • 2:30 PM',
-                      amount: '\$45.00',
-                      status: 'Completed',
-                      iconBackgroundColor: const Color(0xFFE0E7FF),
-                      iconColor: const Color(0xFF4F46E5),
-                      statusBackgroundColor: const Color(0xFFE6F9F3),
-                      statusTextColor: AppColors.success,
-                    ),
-                    RecentActivityCard(
-                      icon: Icons.battery_charging_full,
-                      serviceName: 'Battery Jump',
-                      date: 'Sun, 05 Oct • 9:15 AM',
-                      amount: '\$35.00',
-                      status: 'Completed',
-                      iconBackgroundColor: const Color(0xFFFFF0E6),
-                      iconColor: const Color(0xFFF97316),
-                      statusBackgroundColor: const Color(0xFFE6F9F3),
-                      statusTextColor: AppColors.success,
-                    ),
-                    RecentActivityCard(
-                      icon: Icons.directions_car,
-                      serviceName: 'Tow Request',
-                      date: 'Sat, 28 Sep • 11:45 PM',
-                      amount: 'Cancelled',
-                      status: 'Cancelled',
-                      iconBackgroundColor: const Color(
-                        0xFFF1F5F9,
-                      ), // Light grey
-                      iconColor: const Color(0xFF94A3B8), // slate-400
-                      statusBackgroundColor: Colors.transparent,
-                      statusTextColor: const Color(0xFF94A3B8),
-                    ),
-                  ],
-                ),
-              ),
+              _buildRecentActivitySection(),
             ],
           ),
         ),
@@ -375,6 +430,137 @@ class _DriverDashboardState extends State<DriverDashboard> {
       bottomNavigationBar: DashboardBottomNavBar(
         selectedIndex: _selectedNavIndex,
         onTabChanged: _handleNavigation,
+      ),
+    );
+  }
+
+  Widget _buildRecentActivitySection() {
+    if (_isLoadingActivity) {
+      return Column(
+        children: List.generate(3, (index) => _buildActivityShimmer()),
+      );
+    }
+
+    if (_recentActivity.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.history,
+                size: 40,
+                color: Colors.grey[400],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'No recent activity yet',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: _recentActivity.map((request) {
+        final isCancelled = request.status.toUpperCase() == 'CANCELLED';
+        return RecentActivityCard(
+          icon: _getServiceIcon(request.serviceType),
+          serviceName: request.serviceTypeLabel,
+          date: _formatDate(request.completedAt ?? request.createdAt),
+          amount: isCancelled
+              ? 'Cancelled'
+              : '\$${request.amount?.toStringAsFixed(2) ?? '0.00'}',
+          status: isCancelled ? 'Cancelled' : 'Completed',
+          iconBackgroundColor: isCancelled
+              ? const Color(0xFFF1F5F9)
+              : _getServiceIconBgColor(request.serviceType),
+          iconColor: isCancelled
+              ? const Color(0xFF94A3B8)
+              : _getServiceIconColor(request.serviceType),
+          statusBackgroundColor: isCancelled
+              ? Colors.transparent
+              : const Color(0xFFE6F9F3),
+          statusTextColor: isCancelled
+              ? const Color(0xFF94A3B8)
+              : AppColors.success,
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildActivityShimmer() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 1),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 14,
+                  width: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 12,
+                  width: 140,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                height: 14,
+                width: 50,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                height: 20,
+                width: 70,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
