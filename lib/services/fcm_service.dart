@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/features/mechanic/widgets/incoming_job_bottom_sheet.dart';
+import 'package:road_rescue/features/driver/widgets/job_accepted_bottom_sheet.dart';
 
 import 'package:road_rescue/main.dart'; // import to access navigatorKey
 
@@ -51,9 +52,12 @@ class FcmService {
 
       final String? type = message.data['type'];
 
-      // For new_job messages, show a bottom sheet instead of a notification
+      // For new_job messages, show a bottom sheet to the mechanic
       if (type == 'new_job') {
         _handleIncomingJobRequest(message);
+      } else if (type == 'job_accepted') {
+        // For job_accepted messages, show a bottom sheet to the driver
+        _handleJobAccepted(message);
       } else {
         // For other types, show a standard local notification
         if (message.notification != null) {
@@ -233,6 +237,28 @@ class FcmService {
             _declineJob(requestId);
           }
         });
+      } else if (type == 'job_accepted') {
+        // Driver tapped on "mechanic accepted" notification
+        final requestId = data['requestId'] ?? '';
+        final mechanicName = data['mechanicName'] ?? data['providerName'] ?? 'Mechanic';
+        final mechanicPhone = data['mechanicPhone'] ?? data['providerPhone'] ?? '';
+        final mechanicLat = double.tryParse(data['mechanicLatitude']?.toString() ?? data['providerLatitude']?.toString() ?? '') ?? 0.0;
+        final mechanicLng = double.tryParse(data['mechanicLongitude']?.toString() ?? data['providerLongitude']?.toString() ?? '') ?? 0.0;
+        final distanceKm = double.tryParse(data['distanceKm']?.toString() ?? '') ?? 0.0;
+
+        JobAcceptedBottomSheet.show(
+          context,
+          requestId: requestId,
+          mechanicName: mechanicName,
+          mechanicPhone: mechanicPhone,
+          mechanicLatitude: mechanicLat,
+          mechanicLongitude: mechanicLng,
+          distanceKm: distanceKm,
+        ).then((result) {
+          if (result == 'completed' && navigatorKey.currentContext != null) {
+            Navigator.of(navigatorKey.currentContext!).pushReplacementNamed('/driver');
+          }
+        });
       }
     } catch (e) {
       print('[FcmService] Error parsing notification payload: $e');
@@ -314,7 +340,7 @@ class FcmService {
         _handleIncomingJobRequest(message);
         break;
       case 'job_accepted':
-        Navigator.of(context).pushNamed('/driver/map');
+        _handleJobAccepted(message);
         break;
       case 'verification_approved':
         Navigator.of(context).pushReplacementNamed('/mechanic');
@@ -330,5 +356,45 @@ class FcmService {
       default:
         print('Unknown notification type: $type');
     }
+  }
+
+  /// Handle job accepted notification — show bottom sheet to the driver
+  static void _handleJobAccepted(RemoteMessage message) {
+    final context = navigatorKey.currentContext;
+    if (context == null) {
+      print('[FcmService] No context for job_accepted bottom sheet, showing notification');
+      _showLocalNotification(message);
+      return;
+    }
+
+    final data = message.data;
+    final String requestId = data['requestId'] ?? '';
+    final String mechanicName = data['mechanicName'] ?? data['providerName'] ?? 'Mechanic';
+    final String mechanicPhone = data['mechanicPhone'] ?? data['providerPhone'] ?? '';
+    final double mechanicLat = double.tryParse(data['mechanicLatitude'] ?? data['providerLatitude'] ?? '') ?? 0.0;
+    final double mechanicLng = double.tryParse(data['mechanicLongitude'] ?? data['providerLongitude'] ?? '') ?? 0.0;
+    final double distanceKm = double.tryParse(data['distanceKm'] ?? '') ?? 0.0;
+    final String? description = data['description'];
+
+    print('[FcmService] Showing job accepted bottom sheet for request: $requestId');
+
+    JobAcceptedBottomSheet.show(
+      context,
+      requestId: requestId,
+      mechanicName: mechanicName,
+      mechanicPhone: mechanicPhone,
+      mechanicLatitude: mechanicLat,
+      mechanicLongitude: mechanicLng,
+      distanceKm: distanceKm,
+      issueDescription: description,
+    ).then((result) {
+      if (result == 'completed') {
+        print('[FcmService] Service marked as completed');
+        // Navigate to driver dashboard
+        if (navigatorKey.currentContext != null) {
+          Navigator.of(navigatorKey.currentContext!).pushReplacementNamed('/driver');
+        }
+      }
+    });
   }
 }
