@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/theme/app_colors.dart';
+import 'package:road_rescue/services/driver_service.dart';
+import 'package:road_rescue/services/location_service.dart';
+import 'package:road_rescue/services/token_service.dart';
 import 'dart:math' as math;
 import 'package:road_rescue/features/driver/pages/nearby_mechanics_map_page.dart';
+import 'package:geocoding/geocoding.dart';
 
 class SearchingMechanicPage extends StatefulWidget {
   final String issueType;
@@ -19,6 +23,8 @@ class SearchingMechanicPage extends StatefulWidget {
 
 class _SearchingMechanicPageState extends State<SearchingMechanicPage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  bool _isSearching = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -28,16 +34,134 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage> with Sing
       duration: const Duration(seconds: 4),
     )..repeat();
     
-    // Simulate searching and then transition
-    Future.delayed(const Duration(seconds: 4), () {
+    // Start the actual API request
+    _createServiceRequest();
+  }
+
+  Future<void> _createServiceRequest() async {
+    try {
+      // 1. Get the driver's current location
+      final hasPermission = await LocationService.requestLocationPermission();
+      if (!hasPermission) {
+        if (mounted) {
+          setState(() {
+            _isSearching = false;
+            _errorMessage = 'Location permission is required to find nearby mechanics.';
+          });
+        }
+        return;
+      }
+
+      final locationData = await LocationService.getCurrentLocation();
+      if (locationData == null) {
+        if (mounted) {
+          setState(() {
+            _isSearching = false;
+            _errorMessage = 'Unable to get your current location. Please enable GPS and try again.';
+          });
+        }
+        return;
+      }
+
+      // 2. Reverse-geocode the coordinates to get an address string
+      String locationAddress = 'Current Location';
+      try {
+        final placemarks = await placemarkFromCoordinates(
+          locationData.latitude,
+          locationData.longitude,
+        );
+        if (placemarks.isNotEmpty) {
+          final place = placemarks.first;
+          final parts = [
+            place.street,
+            place.locality,
+            place.administrativeArea,
+            place.country,
+          ].where((p) => p != null && p.isNotEmpty);
+          locationAddress = parts.join(', ');
+        }
+      } catch (e) {
+        print('[SearchingMechanicPage] Reverse geocoding failed: $e');
+        // Continue with fallback address
+      }
+
+      // 3. Get the driver ID
+      final driverId = await TokenService.getUserId();
+      if (driverId == null) {
+        if (mounted) {
+          setState(() {
+            _isSearching = false;
+            _errorMessage = 'Session expired. Please log in again.';
+          });
+        }
+        return;
+      }
+
+      // 4. Build a proper description from the issue type
+      final description = _buildDescription(widget.issueType);
+
+      // 5. Call the API
+      final response = await DriverService.createServiceRequest(
+        driverId: driverId,
+        description: description,
+        location: locationAddress,
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+      );
+
+      // 6. Navigate to the map page with real data
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => NearbyMechanicsMapPage(issueType: widget.issueType),
+            builder: (context) => NearbyMechanicsMapPage(
+              issueType: widget.issueType,
+              requestId: response.id,
+              driverLatitude: locationData.latitude,
+              driverLongitude: locationData.longitude,
+              nearbyProviders: response.nearbyProviders,
+            ),
           ),
         );
       }
-    });
+    } catch (e) {
+      print('[SearchingMechanicPage] Error creating request: $e');
+      if (mounted) {
+        setState(() {
+          _isSearching = false;
+          _errorMessage = _parseError(e);
+        });
+      }
+    }
+  }
+
+  String _buildDescription(String issueType) {
+    switch (issueType.toLowerCase()) {
+      case 'battery issue':
+        return 'Vehicle battery issue - needs jump start or battery replacement';
+      case 'flat tire':
+        return 'Flat tire - needs tire repair or replacement on the road';
+      case 'engine issue':
+        return 'Engine problem - vehicle not starting or engine overheating';
+      case 'tow request':
+        return 'Vehicle needs towing - cannot be driven to a repair shop';
+      case 'general repair':
+        return 'General vehicle breakdown - needs roadside mechanical assistance';
+      default:
+        return '$issueType - needs roadside assistance';
+    }
+  }
+
+  String _parseError(dynamic error) {
+    if (error.toString().contains('Only DRIVER')) {
+      return 'Only driver accounts can create service requests.';
+    }
+    if (error.toString().contains('Unauthorized')) {
+      return 'Session expired. Please log in again.';
+    }
+    if (error.toString().contains('Network error')) {
+      return 'Network error. Please check your connection and try again.';
+    }
+    return 'Something went wrong. Please try again.';
   }
 
   @override
@@ -55,7 +179,7 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage> with Sing
           children: [
             const SizedBox(height: 48),
             Text(
-              'SEARCHING FOR HELP...',
+              _isSearching ? 'SEARCHING FOR HELP...' : 'REQUEST FAILED',
               style: TextStyle(
                 color: AppColors.textSecondary.withValues(alpha: 0.6),
                 letterSpacing: 1.5,
@@ -66,46 +190,96 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage> with Sing
             
             Expanded(
               child: Center(
-                child: AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    return CustomPaint(
-                      painter: RipplePainter(
-                        animationValue: _controller.value,
-                        color: const Color(0xFF2DD4BF), // Light Teal/Green
-                      ),
-                      child: Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E4C4E), // Dark Teal
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF1E4C4E).withValues(alpha: 0.2),
-                              blurRadius: 16,
-                              spreadRadius: 4,
+                child: _isSearching 
+                    ? AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, child) {
+                          return CustomPaint(
+                            painter: RipplePainter(
+                              animationValue: _controller.value,
+                              color: const Color(0xFF2DD4BF),
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.build_outlined,
-                          color: Colors.white,
-                          size: 22,
-                        ),
+                            child: Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E4C4E),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF1E4C4E).withValues(alpha: 0.2),
+                                    blurRadius: 16,
+                                    spreadRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.build_outlined,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFE4E6),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.error_outline,
+                              color: Color(0xFFE11D48),
+                              size: 40,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 40),
+                            child: Text(
+                              _errorMessage ?? 'Something went wrong',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: AppColors.textSecondary,
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          TextButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _isSearching = true;
+                                _errorMessage = null;
+                              });
+                              _createServiceRequest();
+                            },
+                            icon: const Icon(Icons.refresh, color: Color(0xFF1E4C4E)),
+                            label: const Text(
+                              'Try Again',
+                              style: TextStyle(
+                                color: Color(0xFF1E4C4E),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                ),
               ),
             ),
 
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                'Connecting you\nwith a Mechanic',
+                _isSearching ? 'Connecting you\nwith a Mechanic' : 'Unable to Connect',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -130,12 +304,12 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage> with Sing
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
-                        color: Color(0xFFF1F5F9), // Very light grey
+                        color: Color(0xFFF1F5F9),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         widget.issueIcon,
-                        color: const Color(0xFF475569), // Slate
+                        color: const Color(0xFF475569),
                         size: 20,
                       ),
                     ),
@@ -153,9 +327,9 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage> with Sing
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Searching within 5km',
-                            style: TextStyle(
+                          Text(
+                            _isSearching ? 'Searching within 5km' : 'Search stopped',
+                            style: const TextStyle(
                               fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
@@ -163,14 +337,15 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage> with Sing
                         ],
                       ),
                     ),
-                    const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFCBD5E1)),
+                    if (_isSearching)
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFCBD5E1)),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -188,15 +363,15 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage> with Sing
                     Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E4C4E), // Dark Teal
+                    backgroundColor: const Color(0xFF1E4C4E),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Cancel Request',
-                    style: TextStyle(
+                  child: Text(
+                    _isSearching ? 'Cancel Request' : 'Go Back',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -230,26 +405,13 @@ class RipplePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
-    // Use a much larger max radius for the rings to cover bounds
     final maxRadius = 1000.0; 
 
-    // Draw 3 concentric rings that expand
     for (int i = 0; i < 3; i++) {
-        // Offset each ring's phase evenly
         double offsetValue = (animationValue + (i / 3.0)) % 1.0;
-        
-        
-        // Exponential expansion for a more natural ripple effect
         double radius = 40.0 * math.pow(maxRadius / 40.0, offsetValue);
-
-
-        // // Linear expansion to maintain spacing instead of exponential curve crowding
-        // double radius = 40.0 + (maxRadius - 40.0) * offsetValue;
-
-        // Opacity drops smoothly as radius increases to maxRadius
         double opacity = 1.0 - offsetValue;
         paint.color = color.withValues(alpha: opacity * 0.8);
-
         canvas.drawCircle(center, radius, paint);
     }
   }
