@@ -142,12 +142,12 @@ class FcmService {
     if (!isAuth) return; // Don't register if not logged in
 
     try {
-      final platform = kIsWeb ? 'web' : Platform.operatingSystem;
+      // final platform = kIsWeb ? 'web' : Platform.operatingSystem;
       await ApiClient.post(
         '/users/register-device',
         body: {
           'deviceToken': token,
-          'platform': platform,
+          // 'platform': platform,
         },
         requiresAuth: true,
       );

@@ -158,6 +158,7 @@ class MyApp extends StatelessWidget {
         '/mechanic/map': (context) => const MechanicMapPage(),
         '/mechanic/history': (context) => const MechanicHistoryPage(),
         '/mechanic/profile': (context) => const MechanicProfilePage(),
+        '/driver': (context) => const DriverDashboard(),
         '/driver/wallet': (context) => const DriverWalletPage(),
         '/driver/map': (context) => const DriverMapPage(),
         '/driver/history': (context) => const DriverHistoryPage(),

@@ -17,18 +17,17 @@ class _DriverDashboardState extends State<DriverDashboard> {
   String _driverName = '';
   int _selectedNavIndex = 0;
 
-  
   @override
   void initState() {
     super.initState();
     _loadDriverInfo();
   }
-  
+
   Future<void> _loadDriverInfo() async {
     final userData = await TokenService.getUserData();
     if (mounted) {
       setState(() {
-        _driverName = userData?['name'] as String? ?? 'Driver';
+        _driverName = userData?['name'] as String? ?? '';
         // Extract first name
         if (_driverName.contains(' ')) {
           _driverName = _driverName.split(' ').first;
@@ -44,7 +43,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
     switch (index) {
       case 0:
-        // Already on Home
+        Navigator.of(context).pushReplacementNamed('/driver/dashboard');
         break;
       case 1:
         Navigator.of(context).pushReplacementNamed('/driver/wallet');
@@ -122,9 +121,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Help Card
               Container(
                 width: double.infinity,
@@ -191,10 +190,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                             ),
                           );
                         },
-                        icon: const Icon(
-                          Icons.build,
-                          color: AppColors.primary,
-                        ),
+                        icon: const Icon(Icons.build, color: AppColors.primary),
                         label: const Text(
                           'Request Mechanic',
                           style: TextStyle(
@@ -216,9 +212,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Quick Issue Types
               const Text(
                 'Quick Issue Types',
@@ -298,9 +294,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Recent Activity
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -329,7 +325,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
               const SizedBox(height: 12),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.transparent, // Removing the overall border since the cards have their own borders
+                  color: Colors
+                      .transparent, // Removing the overall border since the cards have their own borders
                 ),
                 child: Column(
                   children: [
@@ -361,7 +358,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
                       date: 'Sat, 28 Sep • 11:45 PM',
                       amount: 'Cancelled',
                       status: 'Cancelled',
-                      iconBackgroundColor: const Color(0xFFF1F5F9), // Light grey
+                      iconBackgroundColor: const Color(
+                        0xFFF1F5F9,
+                      ), // Light grey
                       iconColor: const Color(0xFF94A3B8), // slate-400
                       statusBackgroundColor: Colors.transparent,
                       statusTextColor: const Color(0xFF94A3B8),
@@ -380,4 +379,3 @@ class _DriverDashboardState extends State<DriverDashboard> {
     );
   }
 }
-
