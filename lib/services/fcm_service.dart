@@ -115,9 +115,12 @@ class FcmService {
   /// Accept a job request via API
   static Future<void> _acceptJob(String requestId, BuildContext context) async {
     try {
-      final response = await ApiClient.put(
-        '/requests/$requestId/respond',
-        body: {'action': 'ACCEPT'},
+      final response = await ApiClient.post(
+        '/requests/respond',
+        body: {
+          'requestId': requestId,
+          'response': 'APPROVE',
+        },
         requiresAuth: true,
       );
 
@@ -138,9 +141,12 @@ class FcmService {
   /// Decline a job request via API
   static Future<void> _declineJob(String requestId) async {
     try {
-      final response = await ApiClient.put(
-        '/requests/$requestId/respond',
-        body: {'action': 'DECLINE'},
+      final response = await ApiClient.post(
+        '/requests/respond',
+        body: {
+          'requestId': requestId,
+          'response': 'DECLINE',
+        },
         requiresAuth: true,
       );
 

@@ -480,7 +480,7 @@ class _RequestingAssistanceDialogState extends State<_RequestingAssistanceDialog
 
   Future<void> _assignProvider() async {
     try {
-      await DriverService.assignProviderToRequest(
+      await DriverService.selectProvider(
         requestId: widget.requestId,
         providerId: widget.provider.id,
       );

@@ -60,21 +60,22 @@ class DriverService {
     }
   }
 
-  /// Assign a specific provider to a service request
+  /// Select a provider for a service request
   ///
-  /// Calls PUT /requests/:requestId/assign with the selected provider ID.
-  /// The backend sets the request status to PENDING and sends FCM to the provider.
-  /// Returns the updated service request.
-  static Future<Map<String, dynamic>> assignProviderToRequest({
+  /// Calls POST /requests/select-provider with the request and provider IDs.
+  /// The backend sets the request status to ASSIGNED and sends FCM to the provider.
+  /// Only APPROVED providers can be selected.
+  static Future<Map<String, dynamic>> selectProvider({
     required String requestId,
     required String providerId,
   }) async {
     try {
-      print('[DriverService] Assigning provider $providerId to request $requestId...');
+      print('[DriverService] Selecting provider $providerId for request $requestId...');
 
-      final response = await ApiClient.put(
-        '/requests/$requestId/assign',
+      final response = await ApiClient.post(
+        '/requests/select-provider',
         body: {
+          'requestId': requestId,
           'providerId': providerId,
         },
         requiresAuth: true,
@@ -82,7 +83,7 @@ class DriverService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print('[DriverService] Provider assigned successfully. Status: ${data['status']}');
+        print('[DriverService] Provider selected successfully. Status: ${data['status']}');
         return data;
       } else if (response.statusCode == 400) {
         final data = jsonDecode(response.body);
@@ -92,17 +93,19 @@ class DriverService {
         throw ApiException(message);
       } else if (response.statusCode == 401) {
         throw UnauthorizedException('Unauthorized - invalid or missing token');
+      } else if (response.statusCode == 403) {
+        throw ApiException('Only DRIVER users can assign providers');
       } else if (response.statusCode == 404) {
         throw ApiException('Request or provider not found');
       } else {
         throw ApiException(
-          'Failed to assign provider: ${response.statusCode}',
+          'Failed to select provider: ${response.statusCode}',
         );
       }
     } catch (e) {
-      print('[DriverService] Error assigning provider: $e');
+      print('[DriverService] Error selecting provider: $e');
       if (e is ApiException || e is UnauthorizedException) rethrow;
-      throw ApiException('Error assigning provider: $e');
+      throw ApiException('Error selecting provider: $e');
     }
   }
 
