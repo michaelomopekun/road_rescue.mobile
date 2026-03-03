@@ -5,8 +5,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/services/token_service.dart';
-import 'package:road_rescue/features/mechanic/widgets/incoming_job_bottom_sheet.dart';
-import 'package:road_rescue/features/driver/widgets/job_accepted_bottom_sheet.dart';
+import 'package:road_rescue/services/request_state_manager.dart';
+import 'package:road_rescue/services/socket_service.dart';
 
 import 'package:road_rescue/main.dart'; // import to access navigatorKey
 
@@ -50,20 +50,18 @@ class FcmService {
       print('Got a message whilst in the foreground!');
       print('Message data: ${message.data}');
 
-      final String? type = message.data['type'];
+      // If socket is connected, ignore FCM because socket is primary real-time channel
+      if (SocketService().isConnected) {
+        print('[FcmService] Socket is connected, ignoring FCM message in foreground');
+        return;
+      }
 
-      // For new_job messages, show a bottom sheet to the mechanic
-      if (type == 'new_job') {
-        _handleIncomingJobRequest(message);
-      } else if (type == 'job_accepted') {
-        // For job_accepted messages, show a bottom sheet to the driver
-        _handleJobAccepted(message);
+      print('[FcmService] Socket disconnected, showing local notification fallback for FCM');
+      if (message.notification != null) {
+        _showLocalNotification(message);
       } else {
-        // For other types, show a standard local notification
-        if (message.notification != null) {
-          print('Message also contained a notification: ${message.notification}');
-          _showLocalNotification(message);
-        }
+        // Fallback title/body if notification is empty
+        _showLocalNotification(message, fallbackTitle: 'Update', fallbackBody: 'Request status updated');
       }
     });
 
@@ -74,94 +72,20 @@ class FcmService {
     });
   }
 
-  /// Handle incoming job request — show a bottom sheet to the mechanic
+  /// Handle incoming job request — legacy, now handled by state manager
   static void _handleIncomingJobRequest(RemoteMessage message) {
-    final context = navigatorKey.currentContext;
-    if (context == null) {
-      print('[FcmService] No context available for bottom sheet, showing notification instead');
-      _showLocalNotification(message);
-      return;
-    }
-
-    // Extract job data from the FCM message
-    final data = message.data;
-    final String requestId = data['requestId'] ?? '';
-    final String driverName = data['driverName'] ?? 'Unknown Driver';
-    final String description = data['description'] ??
-        message.notification?.body ??
-        'Roadside assistance needed';
-    final String location = data['location'] ?? 'Unknown location';
-    final double distanceKm = double.tryParse(data['distanceKm'] ?? '') ?? 0.0;
-    final String? driverPhone = data['driverPhone'];
-
-    print('[FcmService] Showing incoming job bottom sheet for request: $requestId');
-
-    // Show the bottom sheet
-    IncomingJobBottomSheet.show(
-      context,
-      requestId: requestId,
-      driverName: driverName,
-      issueDescription: description,
-      location: location,
-      distanceKm: distanceKm,
-      driverPhone: driverPhone,
-    ).then((accepted) {
-      if (accepted == true) {
-        print('[FcmService] Mechanic ACCEPTED job: $requestId');
-        _acceptJob(requestId, context);
-      } else if (accepted == false) {
-        print('[FcmService] Mechanic DECLINED job: $requestId');
-        _declineJob(requestId);
-      }
-    });
+    print('[FcmService] _handleIncomingJobRequest called (fallback)');
+    RequestStateManager().loadActiveRequest(); // Fetch latest state
   }
 
   /// Accept a job request via API
   static Future<void> _acceptJob(String requestId, BuildContext context) async {
-    try {
-      final response = await ApiClient.post(
-        '/requests/respond',
-        body: {
-          'requestId': requestId,
-          'response': 'APPROVE',
-        },
-        requiresAuth: true,
-      );
-
-      if (response.statusCode == 200) {
-        print('[FcmService] Job accepted successfully');
-        // Navigate to the active job or refresh the dashboard
-        if (navigatorKey.currentContext != null) {
-          Navigator.of(navigatorKey.currentContext!).pushNamed('/mechanic');
-        }
-      } else {
-        print('[FcmService] Failed to accept job: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('[FcmService] Error accepting job: $e');
-    }
+    // Moved to mechanic service and active job page
   }
 
   /// Decline a job request via API
   static Future<void> _declineJob(String requestId) async {
-    try {
-      final response = await ApiClient.post(
-        '/requests/respond',
-        body: {
-          'requestId': requestId,
-          'response': 'DECLINE',
-        },
-        requiresAuth: true,
-      );
-
-      if (response.statusCode == 200) {
-        print('[FcmService] Job declined successfully');
-      } else {
-        print('[FcmService] Failed to decline job: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('[FcmService] Error declining job: $e');
-    }
+    // Moved mostly away, backend could handle decline via status
   }
 
   static Future<void> requestPermissions() async {
@@ -208,68 +132,30 @@ class FcmService {
   /// Handle tapping on a local notification
   static void _handleNotificationTap(String payload) {
     try {
-      // Try to parse as JSON first
-      final data = jsonDecode(payload) as Map<String, dynamic>;
-      final type = data['type'] as String?;
+      print('[FcmService] Local notification tapped. Reloading active request...');
+      RequestStateManager().loadActiveRequest(); // Fetch latest state
+      
       final context = navigatorKey.currentContext;
-
-      if (context == null || type == null) return;
-
-      // If it's a new_job from a background notification tap, show the bottom sheet
-      if (type == 'new_job') {
-        final requestId = data['requestId'] ?? '';
-        final driverName = data['driverName'] ?? 'Unknown Driver';
-        final description = data['description'] ?? 'Roadside assistance needed';
-        final location = data['location'] ?? 'Unknown location';
-        final distanceKm = double.tryParse(data['distanceKm']?.toString() ?? '') ?? 0.0;
-
-        IncomingJobBottomSheet.show(
-          context,
-          requestId: requestId,
-          driverName: driverName,
-          issueDescription: description,
-          location: location,
-          distanceKm: distanceKm,
-        ).then((accepted) {
-          if (accepted == true) {
-            _acceptJob(requestId, context);
-          } else if (accepted == false) {
-            _declineJob(requestId);
-          }
-        });
-      } else if (type == 'job_accepted') {
-        // Driver tapped on "mechanic accepted" notification
-        final requestId = data['requestId'] ?? '';
-        final mechanicName = data['mechanicName'] ?? data['providerName'] ?? 'Mechanic';
-        final mechanicPhone = data['mechanicPhone'] ?? data['providerPhone'] ?? '';
-        final mechanicLat = double.tryParse(data['mechanicLatitude']?.toString() ?? data['providerLatitude']?.toString() ?? '') ?? 0.0;
-        final mechanicLng = double.tryParse(data['mechanicLongitude']?.toString() ?? data['providerLongitude']?.toString() ?? '') ?? 0.0;
-        final distanceKm = double.tryParse(data['distanceKm']?.toString() ?? '') ?? 0.0;
-
-        JobAcceptedBottomSheet.show(
-          context,
-          requestId: requestId,
-          mechanicName: mechanicName,
-          mechanicPhone: mechanicPhone,
-          mechanicLatitude: mechanicLat,
-          mechanicLongitude: mechanicLng,
-          distanceKm: distanceKm,
-        ).then((result) {
-          if (result == 'completed' && navigatorKey.currentContext != null) {
-            Navigator.of(navigatorKey.currentContext!).pushReplacementNamed('/driver');
-          }
-        });
+      if (context != null) {
+        // Force navigation to dashboard which will handle routing to active request
+        final type = jsonDecode(payload)['type'] as String?;
+        if (type == 'new_job' || type == 'job_update' || type == 'job_accepted') {
+           // Assume proper navigation will happen via state manager updates listening to activeRequest changes
+        }
       }
     } catch (e) {
       print('[FcmService] Error parsing notification payload: $e');
     }
   }
 
-  static Future<void> _showLocalNotification(RemoteMessage message) async {
+  static Future<void> _showLocalNotification(RemoteMessage message, {String? fallbackTitle, String? fallbackBody}) async {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
-    if (notification != null && android != null && !kIsWeb) {
+    final title = notification?.title ?? fallbackTitle ?? 'Notification';
+    final body = notification?.body ?? fallbackBody ?? 'New update';
+
+    if (!kIsWeb) {
       const AndroidNotificationDetails androidPlatformChannelSpecifics =
           AndroidNotificationDetails(
         'high_importance_channel', // id
@@ -292,9 +178,9 @@ class FcmService {
       final payload = jsonEncode(message.data);
 
       await _localNotificationsPlugin.show(
-        id: notification.hashCode,
-        title: notification.title,
-        body: notification.body,
+        (notification.hashCode == 0) ? DateTime.now().millisecondsSinceEpoch ~/ 1000 : notification.hashCode,
+        title,
+        body,
         notificationDetails: platformChannelSpecifics,
         payload: payload,
       );
@@ -324,77 +210,13 @@ class FcmService {
   }
 
   static void _handleNavigation(RemoteMessage message) {
-    if (message.data.isEmpty) return;
-    
-    final String? type = message.data['type'];
-    final context = navigatorKey.currentContext;
-    
-    if (context == null) {
-      print('Warning: No current context for navigation');
-      return;
-    }
-
-    switch (type) {
-      case 'new_job':
-        // Show bottom sheet instead of just navigating
-        _handleIncomingJobRequest(message);
-        break;
-      case 'job_accepted':
-        _handleJobAccepted(message);
-        break;
-      case 'verification_approved':
-        Navigator.of(context).pushReplacementNamed('/mechanic');
-        break;
-      case 'job_update':
-        final role = message.data['role']; // e.g. DRIVER or PROVIDER
-        if (role == 'DRIVER') {
-          Navigator.of(context).pushNamed('/driver/history');
-        } else {
-          Navigator.of(context).pushNamed('/mechanic/history');
-        }
-        break;
-      default:
-        print('Unknown notification type: $type');
-    }
+    print('[FcmService] Message opened from background, reloading active request...');
+    RequestStateManager().loadActiveRequest(); // Fetch latest state
   }
 
-  /// Handle job accepted notification — show bottom sheet to the driver
+  /// Handle job accepted notification — legacy, now handled by state manager
   static void _handleJobAccepted(RemoteMessage message) {
-    final context = navigatorKey.currentContext;
-    if (context == null) {
-      print('[FcmService] No context for job_accepted bottom sheet, showing notification');
-      _showLocalNotification(message);
-      return;
-    }
-
-    final data = message.data;
-    final String requestId = data['requestId'] ?? '';
-    final String mechanicName = data['mechanicName'] ?? data['providerName'] ?? 'Mechanic';
-    final String mechanicPhone = data['mechanicPhone'] ?? data['providerPhone'] ?? '';
-    final double mechanicLat = double.tryParse(data['mechanicLatitude'] ?? data['providerLatitude'] ?? '') ?? 0.0;
-    final double mechanicLng = double.tryParse(data['mechanicLongitude'] ?? data['providerLongitude'] ?? '') ?? 0.0;
-    final double distanceKm = double.tryParse(data['distanceKm'] ?? '') ?? 0.0;
-    final String? description = data['description'];
-
-    print('[FcmService] Showing job accepted bottom sheet for request: $requestId');
-
-    JobAcceptedBottomSheet.show(
-      context,
-      requestId: requestId,
-      mechanicName: mechanicName,
-      mechanicPhone: mechanicPhone,
-      mechanicLatitude: mechanicLat,
-      mechanicLongitude: mechanicLng,
-      distanceKm: distanceKm,
-      issueDescription: description,
-    ).then((result) {
-      if (result == 'completed') {
-        print('[FcmService] Service marked as completed');
-        // Navigate to driver dashboard
-        if (navigatorKey.currentContext != null) {
-          Navigator.of(navigatorKey.currentContext!).pushReplacementNamed('/driver');
-        }
-      }
-    });
+    print('[FcmService] _handleJobAccepted called (fallback)');
+    RequestStateManager().loadActiveRequest(); // Fetch latest state
   }
 }

@@ -1,8 +1,76 @@
 import 'dart:convert';
 import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/services/exceptions.dart';
+import 'package:road_rescue/models/service_request.dart';
+import 'package:road_rescue/models/quotation.dart';
 
 class MechanicService {
+  /// Get provider's active request
+  static Future<ServiceRequest?> getActiveRequest() async {
+    try {
+      final response = await ApiClient.get('/requests/active', requiresAuth: true);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data == null || (data is Map && data.isEmpty)) return null;
+        return ServiceRequest.fromJson(data);
+      } else if (response.statusCode == 404) {
+        return null; // No active request
+      }
+      return null;
+    } catch (e) {
+      print('[MechanicService] Error getting active request: $e');
+      return null;
+    }
+  }
+
+  /// Accept incoming request
+  static Future<bool> acceptRequest(String requestId) async {
+    try {
+      // Backend validates if already taken, returns 409 if conflict
+      final response = await ApiClient.post('/requests/$requestId/accept', body: {}, requiresAuth: true);
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('[MechanicService] Error accepting request: $e');
+      return false;
+    }
+  }
+
+  /// Mark request as arrived
+  static Future<bool> markArrived(String requestId) async {
+    try {
+      final response = await ApiClient.post('/requests/$requestId/arrived', body: {}, requiresAuth: true);
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('[MechanicService] Error marking arrived: $e');
+      return false;
+    }
+  }
+
+  /// Submit quotation
+  static Future<bool> submitQuotation(String requestId, Quotation quotation) async {
+    try {
+      final body = quotation.toJson();
+      body['requestId'] = requestId;
+      
+      final response = await ApiClient.post('/quotations', body: body, requiresAuth: true);
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('[MechanicService] Error submitting quotation: $e');
+      return false;
+    }
+  }
+
+  /// Mark request as completed
+  static Future<bool> markCompleted(String requestId) async {
+    try {
+      final response = await ApiClient.post('/requests/$requestId/complete', body: {}, requiresAuth: true);
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('[MechanicService] Error marking completed: $e');
+      return false;
+    }
+  }
+
   /// Get provider verification status
   static Future<ProviderVerificationStatus> getVerificationStatus(
     String providerId,

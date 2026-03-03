@@ -4,8 +4,9 @@ import 'package:road_rescue/services/driver_service.dart';
 import 'package:road_rescue/services/location_service.dart';
 import 'package:road_rescue/services/token_service.dart';
 import 'dart:math' as math;
-import 'package:road_rescue/features/driver/pages/nearby_mechanics_map_page.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:road_rescue/services/request_state_manager.dart';
+import 'package:road_rescue/features/driver/pages/active_request_page.dart';
 
 class SearchingMechanicPage extends StatefulWidget {
   final String issueType;
@@ -109,17 +110,13 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage> with Sing
         longitude: locationData.longitude,
       );
 
-      // 6. Navigate to the map page with real data
+      // 6. Request was created. Now load the active request into state manager.
+      await RequestStateManager().loadActiveRequest();
+
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => NearbyMechanicsMapPage(
-              issueType: widget.issueType,
-              requestId: response.id,
-              driverLatitude: locationData.latitude,
-              driverLongitude: locationData.longitude,
-              nearbyProviders: response.nearbyProviders,
-            ),
+            builder: (context) => const ActiveRequestPage(),
           ),
         );
       }

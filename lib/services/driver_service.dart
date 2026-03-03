@@ -1,15 +1,55 @@
 import 'dart:convert';
 import 'package:road_rescue/services/api_client.dart';
 import 'package:road_rescue/services/exceptions.dart';
+import 'package:road_rescue/models/service_request.dart';
 
 class DriverService {
+  /// Get driver's active request
+  static Future<ServiceRequest?> getActiveRequest() async {
+    try {
+      final response = await ApiClient.get('/requests/active', requiresAuth: true);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data == null || (data is Map && data.isEmpty)) return null;
+        return ServiceRequest.fromJson(data);
+      } else if (response.statusCode == 404) {
+        return null;
+      }
+      return null;
+    } catch (e) {
+      print('[DriverService] Error getting active request: $e');
+      return null;
+    }
+  }
+
+  /// Approve quotation
+  static Future<bool> approveQuotation(String quotationId) async {
+    try {
+      final response = await ApiClient.post('/quotations/$quotationId/accept', body: {}, requiresAuth: true);
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('[DriverService] Error approving quotation: $e');
+      return false;
+    }
+  }
+
+  /// Reject quotation
+  static Future<bool> rejectQuotation(String quotationId) async {
+    try {
+      final response = await ApiClient.post('/quotations/$quotationId/reject', body: {}, requiresAuth: true);
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('[DriverService] Error rejecting quotation: $e');
+      return false;
+    }
+  }
+
   /// Create a service request and get nearby providers
   ///
   /// Calls POST /requests with driver location and issue description.
   /// Returns a [ServiceRequestResponse] containing the created request
   /// and a list of nearby verified providers sorted by distance.
   static Future<ServiceRequestResponse> createServiceRequest({
-    required String driverId,
     required String description,
     required String location,
     required double latitude,
@@ -22,7 +62,6 @@ class DriverService {
       final response = await ApiClient.post(
         '/requests',
         body: {
-          'driverId': driverId,
           'description': description,
           'location': location,
           'latitude': latitude,

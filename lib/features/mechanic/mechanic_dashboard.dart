@@ -6,6 +6,10 @@ import 'package:road_rescue/shared/widgets/stats_card.dart';
 import 'package:road_rescue/shared/widgets/request_list_item.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
 import 'package:road_rescue/theme/app_colors.dart';
+import 'package:road_rescue/services/request_state_manager.dart';
+import 'package:road_rescue/features/mechanic/pages/active_job_page.dart';
+import 'package:road_rescue/features/mechanic/widgets/incoming_job_bottom_sheet.dart';
+import 'package:road_rescue/models/service_request.dart';
 
 class MechanicDashboard extends StatefulWidget {
   const MechanicDashboard({super.key});
@@ -23,16 +27,66 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
   List<RecentJob> _recentJobs = [];
   String? _mechanicName;
   bool _disposed = false;
+  bool _isShowingBottomSheet = false;
 
   @override
   void initState() {
     super.initState();
     _loadDashboardData();
+    RequestStateManager().addListener(_onRequestStateChanged);
+    _onRequestStateChanged(); // Check immediately
+  }
+
+  void _onRequestStateChanged() {
+    if (_disposed || !mounted) return;
+
+    final state = RequestStateManager();
+
+    if (state.activeRequest != null) {
+      state.removeListener(_onRequestStateChanged);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const ActiveJobPage()),
+      );
+      return;
+    }
+
+    if (state.pendingRequests.isNotEmpty && !_isShowingBottomSheet) {
+      _showIncomingJob(state.pendingRequests.first);
+    }
+  }
+
+  Future<void> _showIncomingJob(covariant ServiceRequest request) async {
+    _isShowingBottomSheet = true;
+    final accepted = await IncomingJobBottomSheet.show(
+      context,
+      requestId: request.id,
+      driverName: request.driverName,
+      issueDescription: request.description,
+      location: request.location,
+      distanceKm: request.distanceKm ?? 0.0,
+      driverPhone: request.driverPhone,
+    );
+    _isShowingBottomSheet = false;
+
+    if (accepted == true) {
+      try {
+        final success = await MechanicService.acceptRequest(request.id);
+        if (success) {
+          await RequestStateManager().loadActiveRequest(); // Will trigger navigation
+        }
+      } catch (e) {
+        if (mounted) ToastService.showError(context, e.toString());
+      }
+    } else if (accepted == false) {
+      RequestStateManager().pendingRequests.removeWhere((r) => r.id == request.id);
+      RequestStateManager().notifyListeners(); // Check next pending if any
+    }
   }
 
   @override
   void dispose() {
     _disposed = true;
+    RequestStateManager().removeListener(_onRequestStateChanged);
     super.dispose();
   }
 

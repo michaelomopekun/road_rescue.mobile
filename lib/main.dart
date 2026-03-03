@@ -24,8 +24,31 @@ import 'features/mechanic/verification/business_info_screen.dart';
 import 'features/mechanic/verification/address_step_screen.dart';
 import 'features/mechanic/verification/document_upload_screen.dart';
 import 'features/mechanic/verification/verification_pending_screen.dart';
+import 'package:road_rescue/services/request_state_manager.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+class GlobalStateInitializer extends StatefulWidget {
+  final Widget child;
+  const GlobalStateInitializer({super.key, required this.child});
+
+  @override
+  State<GlobalStateInitializer> createState() => _GlobalStateInitializerState();
+}
+
+class _GlobalStateInitializerState extends State<GlobalStateInitializer> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      RequestStateManager().initialize();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -121,7 +144,7 @@ class MyApp extends StatelessWidget {
 
                       // If approved, show full dashboard
                       if (status == 'APPROVED') {
-                        return const MechanicDashboard();
+                        return const GlobalStateInitializer(child: MechanicDashboard());
                       }
 
                       // Otherwise show locked dashboard
@@ -138,7 +161,7 @@ class MyApp extends StatelessWidget {
                     },
                   );
                 } else if (authData.role == 'DRIVER') {
-                  return const DriverDashboard();
+                  return const GlobalStateInitializer(child: DriverDashboard());
                 }
               }
 
