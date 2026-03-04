@@ -10,6 +10,7 @@ class MechanicService {
     try {
       final response = await ApiClient.get('/requests/active', requiresAuth: true);
       if (response.statusCode == 200) {
+        if (response.body.isEmpty) return null;
         final data = jsonDecode(response.body);
         if (data == null || (data is Map && data.isEmpty)) return null;
         return ServiceRequest.fromJson(data);

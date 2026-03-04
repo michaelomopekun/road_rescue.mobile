@@ -6,8 +6,6 @@ import 'package:road_rescue/features/driver/widgets/quick_action_button.dart';
 import 'package:road_rescue/features/driver/widgets/recent_activity_card.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
 import 'package:road_rescue/features/driver/pages/searching_mechanic_page.dart';
-import 'package:road_rescue/services/request_state_manager.dart';
-import 'package:road_rescue/features/driver/pages/active_request_page.dart';
 
 class DriverDashboard extends StatefulWidget {
   const DriverDashboard({super.key});
@@ -27,24 +25,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
     super.initState();
     _loadDriverInfo();
     _loadRecentActivity();
-    
-    RequestStateManager().addListener(_onRequestStateChanged);
-    _onRequestStateChanged(); // Check immediately in case it's already loaded
-  }
-
-  void _onRequestStateChanged() {
-    if (RequestStateManager().activeRequest != null && mounted) {
-      RequestStateManager().removeListener(_onRequestStateChanged);
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const ActiveRequestPage()),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    RequestStateManager().removeListener(_onRequestStateChanged);
-    super.dispose();
   }
 
   Future<void> _loadDriverInfo() async {

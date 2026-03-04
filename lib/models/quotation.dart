@@ -34,12 +34,14 @@ class Quotation {
 }
 
 class QuotationItem {
+  final String description;
   final String type;
   final int quantity;
   final String unit;
   final double unitPrice;
 
   QuotationItem({
+    required this.description,
     required this.type,
     required this.quantity,
     required this.unit,
@@ -50,6 +52,7 @@ class QuotationItem {
 
   factory QuotationItem.fromJson(Map<String, dynamic> json) {
     return QuotationItem(
+      description: json['description']?.toString() ?? '',
       type: json['type']?.toString() ?? '',
       quantity: json['quantity'] as int? ?? 1,
       unit: json['unit']?.toString() ?? '',
@@ -59,6 +62,7 @@ class QuotationItem {
 
   Map<String, dynamic> toJson() {
     return {
+      'description': description,
       'type': type,
       'quantity': quantity,
       'unit': unit,

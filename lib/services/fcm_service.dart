@@ -178,9 +178,9 @@ class FcmService {
       final payload = jsonEncode(message.data);
 
       await _localNotificationsPlugin.show(
-        (notification.hashCode == 0) ? DateTime.now().millisecondsSinceEpoch ~/ 1000 : notification.hashCode,
-        title,
-        body,
+        id: (notification.hashCode == 0) ? DateTime.now().millisecondsSinceEpoch ~/ 1000 : notification.hashCode,
+        title: title,
+        body: body,
         notificationDetails: platformChannelSpecifics,
         payload: payload,
       );

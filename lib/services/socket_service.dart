@@ -40,7 +40,7 @@ class SocketService {
     _requestSocket = IO.io('$baseUrl/requests', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
-      'auth': {'token': token},
+      'extraHeaders': {'Authorization': 'Bearer $token'},
       'reconnection': true,
       'reconnectionDelay': 1000,
       'reconnectionDelayMax': 5000,
@@ -51,7 +51,7 @@ class SocketService {
     _trackingSocket = IO.io('$baseUrl/tracking', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
-      'auth': {'token': token},
+      'extraHeaders': {'Authorization': 'Bearer $token'},
       'reconnection': true,
       'reconnectionDelay': 1000,
       'reconnectionDelayMax': 5000,

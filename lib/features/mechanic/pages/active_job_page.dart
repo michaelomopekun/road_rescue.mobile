@@ -128,7 +128,7 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
                   // Hardcoded for demonstration. Add form fields in reality.
                   final quote = Quotation(
                     items: [
-                      QuotationItem(type: 'Diagnostic Fee', quantity: 1, unit: 'Flat', unitPrice: 5000),
+                      QuotationItem(description: 'Initial Diagnostic', type: 'Diagnostic Fee', quantity: 1, unit: 'Flat', unitPrice: 5000),
                     ],
                     description: 'Basic inspection done.',
                     totalAmount: 5000,

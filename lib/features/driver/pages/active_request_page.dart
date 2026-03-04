@@ -131,7 +131,7 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
                   markerId: const MarkerId('mechanic'),
                   position: mechanicLoc,
                   icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-                  infoWindow: InfoWindow(title: request.providerName),
+                  infoWindow: InfoWindow(title: request.providerName ?? 'Unknown Mechanic'),
                 ),
             },
             onMapCreated: (controller) => _mapController = controller,
@@ -160,12 +160,12 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      CircleAvatar(child: Text(request.providerName[0])),
+                      CircleAvatar(child: Text((request.providerName ?? 'U')[0])),
                       const SizedBox(width: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(request.providerName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(request.providerName ?? 'Unknown Mechanic', style: const TextStyle(fontWeight: FontWeight.bold)),
                           if (request.providerPhone != null)
                             Text(request.providerPhone!),
                         ],

@@ -86,24 +86,12 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage> with Sing
         // Continue with fallback address
       }
 
-      // 3. Get the driver ID
-      final driverId = await TokenService.getUserId();
-      if (driverId == null) {
-        if (mounted) {
-          setState(() {
-            _isSearching = false;
-            _errorMessage = 'Session expired. Please log in again.';
-          });
-        }
-        return;
-      }
-
+      // 3. (Not needed, handled via token)
       // 4. Build a proper description from the issue type
       final description = _buildDescription(widget.issueType);
 
       // 5. Call the API
       final response = await DriverService.createServiceRequest(
-        driverId: driverId,
         description: description,
         location: locationAddress,
         latitude: locationData.latitude,

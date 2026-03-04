@@ -11,7 +11,7 @@ class ServiceRequest {
 
   final String driverName;
   final String? driverPhone;
-  final String providerName;
+  final String? providerName;
   final String? providerPhone;
 
   final double? providerLatitude;
@@ -32,7 +32,7 @@ class ServiceRequest {
     required this.longitude,
     required this.driverName,
     this.driverPhone,
-    required this.providerName,
+    this.providerName,
     this.providerPhone,
     this.providerLatitude,
     this.providerLongitude,
@@ -52,7 +52,7 @@ class ServiceRequest {
       longitude: _parseDouble(json['longitude']),
       driverName: json['driverName']?.toString() ?? 'Unknown Driver',
       driverPhone: json['driverPhone']?.toString(),
-      providerName: json['providerName']?.toString() ?? 'Unknown Mechanic',
+      providerName: json['providerName']?.toString(),
       providerPhone: json['providerPhone']?.toString(),
       providerLatitude: _parseDoubleNullable(json['providerLatitude']) ?? _parseDoubleNullable(json['mechanicLatitude']),
       providerLongitude: _parseDoubleNullable(json['providerLongitude']) ?? _parseDoubleNullable(json['mechanicLongitude']),
