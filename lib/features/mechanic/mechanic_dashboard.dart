@@ -78,8 +78,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
         if (mounted) ToastService.showError(context, e.toString());
       }
     } else if (accepted == false) {
-      RequestStateManager().pendingRequests.removeWhere((r) => r.id == request.id);
-      RequestStateManager().notifyListeners(); // Check next pending if any
+      RequestStateManager().removePendingRequest(request.id);
     }
   }
 
