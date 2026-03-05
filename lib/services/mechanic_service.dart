@@ -8,12 +8,21 @@ class MechanicService {
   /// Get provider's active request
   static Future<ServiceRequest?> getActiveRequest() async {
     try {
-      final response = await ApiClient.get('/requests/active', requiresAuth: true);
+      final response = await ApiClient.get(
+        '/requests/active',
+        requiresAuth: true,
+      );
+      print(
+        '[MechanicService] getActiveRequest status: ${response.statusCode}',
+      );
+      print('[MechanicService] getActiveRequest body: ${response.body}');
+
       if (response.statusCode == 200) {
         if (response.body.isEmpty) return null;
         final data = jsonDecode(response.body);
         if (data == null || (data is Map && data.isEmpty)) return null;
-        return ServiceRequest.fromJson(data);
+        // 200 = active request exists, returned at root level
+        return ServiceRequest.fromJson(data as Map<String, dynamic>);
       } else if (response.statusCode == 404) {
         return null; // No active request
       }
@@ -28,7 +37,11 @@ class MechanicService {
   static Future<bool> acceptRequest(String requestId) async {
     try {
       // Backend validates if already taken, returns 409 if conflict
-      final response = await ApiClient.post('/requests/$requestId/accept', body: {}, requiresAuth: true);
+      final response = await ApiClient.post(
+        '/requests/$requestId/accept',
+        body: {},
+        requiresAuth: true,
+      );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       print('[MechanicService] Error accepting request: $e');
@@ -39,7 +52,11 @@ class MechanicService {
   /// Mark request as arrived
   static Future<bool> markArrived(String requestId) async {
     try {
-      final response = await ApiClient.post('/requests/$requestId/arrived', body: {}, requiresAuth: true);
+      final response = await ApiClient.post(
+        '/requests/$requestId/arrived',
+        body: {},
+        requiresAuth: true,
+      );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       print('[MechanicService] Error marking arrived: $e');
@@ -48,12 +65,19 @@ class MechanicService {
   }
 
   /// Submit quotation
-  static Future<bool> submitQuotation(String requestId, Quotation quotation) async {
+  static Future<bool> submitQuotation(
+    String requestId,
+    Quotation quotation,
+  ) async {
     try {
       final body = quotation.toJson();
       body['requestId'] = requestId;
-      
-      final response = await ApiClient.post('/quotations', body: body, requiresAuth: true);
+
+      final response = await ApiClient.post(
+        '/quotations',
+        body: body,
+        requiresAuth: true,
+      );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       print('[MechanicService] Error submitting quotation: $e');
@@ -64,7 +88,11 @@ class MechanicService {
   /// Mark request as completed
   static Future<bool> markCompleted(String requestId) async {
     try {
-      final response = await ApiClient.post('/requests/$requestId/complete', body: {}, requiresAuth: true);
+      final response = await ApiClient.post(
+        '/requests/$requestId/complete',
+        body: {},
+        requiresAuth: true,
+      );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       print('[MechanicService] Error marking completed: $e');
@@ -317,7 +345,7 @@ class MechanicService {
                 (job) => RecentJob(
                   id: job.id,
                   customerId: job.driverId,
-                  customerName: job.driverName,
+                  customerName: job.driverName ?? "Driver",
                   serviceType: job.description,
                   amount: (job.amount as num).toDouble(),
                   status: job.status,
@@ -573,7 +601,7 @@ class DashboardEarnings {
 class DashboardJob {
   final String id;
   final String driverId;
-  final String driverName;
+  final String? driverName;
   final String driverPhone;
   final String description;
   final String location;
@@ -586,7 +614,7 @@ class DashboardJob {
   DashboardJob({
     required this.id,
     required this.driverId,
-    required this.driverName,
+    this.driverName,
     required this.driverPhone,
     required this.description,
     required this.location,
@@ -600,18 +628,22 @@ class DashboardJob {
   factory DashboardJob.fromJson(Map<String, dynamic> json) {
     return DashboardJob(
       id: json['id'] as String,
-      driverId: json['driverId'] as String,
-      driverName: json['driverName'] as String,
-      driverPhone: json['driverPhone'] as String,
-      description: json['description'] as String,
-      location: json['location'] as String,
-      status: json['status'] as String,
-      amount: json['amount'] as int,
-      assignedAt: DateTime.parse(json['assignedAt'] as String),
+      driverId: json['driverId'] as String? ?? '',
+      driverName: json['driverName'] as String?,
+      driverPhone: json['driverPhone'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      location: json['location'] as String? ?? '',
+      status: json['status'] as String? ?? 'UNKNOWN',
+      amount: (json['amount'] as num?)?.toInt() ?? 0,
+      assignedAt: json['assignedAt'] != null
+          ? DateTime.parse(json['assignedAt'] as String)
+          : DateTime.now(),
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'] as String)
           : null,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(),
     );
   }
 }

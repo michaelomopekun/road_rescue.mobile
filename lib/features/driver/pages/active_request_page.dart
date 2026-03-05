@@ -35,7 +35,7 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
 
   void _onStateChanged() {
     setState(() {}); // Rebuild UI based on latest state
-    
+
     // Animate map if location changed
     if (_stateManager.mechanicLocation != null && _mapController != null) {
       _mapController!.animateCamera(
@@ -43,7 +43,9 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
       );
     }
 
-    if (_stateManager.activeRequest == null || _stateManager.status == RequestStatus.CANCELLED || _stateManager.status == RequestStatus.PAID) {
+    if (_stateManager.activeRequest == null ||
+        _stateManager.status == RequestStatus.CANCELLED ||
+        _stateManager.status == RequestStatus.PAID) {
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/driver');
       }
@@ -62,45 +64,47 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
         );
       }
     } else {
-       // On success, backend should emit CANCELLED over socket, which will trigger redirection.
-       if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Cancelling request...')),
-          );
-       }
+      // On success, backend should emit CANCELLED over socket, which will trigger redirection.
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Cancelling request...')));
+      }
     }
   }
 
   void _handleRetryNoProvider() {
-     _stateManager.clearActiveRequest();
-     Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-           builder: (context) => const SearchingMechanicPage(
-              issueType: 'General Repair', // Might want to save actual issue in state to re-pass it
-              issueIcon: Icons.handyman,
-           ),
+    _stateManager.clearActiveRequest();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const SearchingMechanicPage(
+          issueType:
+              'General Repair', // Might want to save actual issue in state to re-pass it
+          issueIcon: Icons.handyman,
         ),
-     );
+      ),
+    );
   }
 
   void _handleBackToDashboard() {
-     _stateManager.clearActiveRequest();
-     Navigator.of(context).pushReplacementNamed('/driver');
+    _stateManager.clearActiveRequest();
+    Navigator.of(context).pushReplacementNamed('/driver');
   }
 
   @override
   Widget build(BuildContext context) {
     if (_stateManager.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final request = _stateManager.activeRequest;
     if (request == null) {
-      return const Scaffold(
-        body: Center(child: Text('No active request')),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/driver');
+        }
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     switch (request.status) {
@@ -124,10 +128,7 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
           onCancel: _handleCancelRequest,
         );
       case RequestStatus.QUOTED:
-        return QuotationView(
-          request: request,
-          onCancel: _handleCancelRequest,
-        );
+        return QuotationView(request: request, onCancel: _handleCancelRequest);
       case RequestStatus.IN_PROGRESS:
         // No cancellation allowed here per requirements
         return TrackingView(
@@ -140,12 +141,12 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
         return PaymentView(request: request);
       case RequestStatus.NO_PROVIDER_FOUND:
         return NoProviderView(
-           onRetry: _handleRetryNoProvider,
-           onDashboard: _handleBackToDashboard,
+          onRetry: _handleRetryNoProvider,
+          onDashboard: _handleBackToDashboard,
         );
       case RequestStatus.PAID:
       case RequestStatus.CANCELLED:
-        return const Scaffold(body: Center(child: CircularProgressIndicator())); 
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
   }
 
@@ -165,13 +166,15 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-             CircularProgressIndicator(),
-             SizedBox(height: 16),
-             Text('Searching for nearby mechanics...', style: TextStyle(fontSize: 18)),
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Searching for nearby mechanics...',
+              style: TextStyle(fontSize: 18),
+            ),
           ],
         ),
       ),
     );
   }
 }
-
