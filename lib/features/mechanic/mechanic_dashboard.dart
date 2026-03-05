@@ -53,9 +53,9 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
 
   void _navigateToActiveJob() async {
     RequestStateManager().removeListener(_onRequestStateChanged);
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const ActiveJobPage()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const ActiveJobPage()));
     // On return, re-attach listener and refresh
     if (!_disposed && mounted) {
       RequestStateManager().addListener(_onRequestStateChanged);
@@ -81,7 +81,8 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
       try {
         final success = await MechanicService.acceptRequest(request.id);
         if (success) {
-          await RequestStateManager().loadActiveRequest(); // Will trigger navigation
+          await RequestStateManager()
+              .loadActiveRequest(); // Will trigger navigation
         }
       } catch (e) {
         if (mounted) ToastService.showError(context, e.toString());
@@ -520,9 +521,14 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
 
   Widget _buildRequestSection() {
     final activeRequest = RequestStateManager().activeRequest;
-    print('[MechanicDashboard] _buildRequestSection: activeRequest=${activeRequest != null ? 'id=${activeRequest.id}, status=${activeRequest.status}' : 'null'}');
+    print(
+      '[MechanicDashboard] _buildRequestSection: activeRequest=${activeRequest != null ? 'id=${activeRequest.id}, status=${activeRequest.status}' : 'null'}',
+    );
 
-    if (activeRequest == null) {
+    if (activeRequest == null ||
+        activeRequest.status == RequestStatus.NO_PROVIDER_FOUND ||
+        activeRequest.status == RequestStatus.CANCELLED ||
+        activeRequest.providerId == null) {
       // No active request — show waiting placeholder
       return Container(
         width: double.infinity,
@@ -572,9 +578,14 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: _statusColor(activeRequest.status).withValues(alpha: 0.1),
+                    color: _statusColor(
+                      activeRequest.status,
+                    ).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -601,7 +612,11 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -624,7 +639,11 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
             // Location
             Row(
               children: [
-                Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+                Icon(
+                  Icons.location_on_outlined,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -646,10 +665,15 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
             // Driver info
             Row(
               children: [
-                Icon(Icons.person_outline, size: 16, color: AppColors.textSecondary),
+                Icon(
+                  Icons.person_outline,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 4),
                 Text(
-                  activeRequest.driverName.isNotEmpty && activeRequest.driverName != 'Unknown Driver'
+                  activeRequest.driverName.isNotEmpty &&
+                          activeRequest.driverName != 'Unknown Driver'
                       ? activeRequest.driverName
                       : 'Driver',
                   style: TextStyle(
@@ -659,7 +683,11 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
                 ),
                 if (activeRequest.distanceKm != null) ...[
                   const SizedBox(width: 12),
-                  Icon(Icons.straighten, size: 16, color: AppColors.textSecondary),
+                  Icon(
+                    Icons.straighten,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     '${activeRequest.distanceKm!.toStringAsFixed(1)} km',

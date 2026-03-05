@@ -27,14 +27,22 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
     super.dispose();
   }
 
-  void _onStateChanged() {
-    setState(() {}); // Rebuild UI based on latest state
-
-    if (_stateManager.activeRequest == null || _stateManager.status == RequestStatus.CANCELLED) {
+  void _checkAndNavigate() {
+    final request = _stateManager.activeRequest;
+    if (request == null ||
+        request.status == RequestStatus.NO_PROVIDER_FOUND ||
+        request.status == RequestStatus.CANCELLED ||
+        request.status == RequestStatus.COMPLETED ||
+        request.providerId == null) {
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/mechanic');
       }
     }
+  }
+
+  void _onStateChanged() {
+    setState(() {}); // Rebuild UI based on latest state
+    _checkAndNavigate();
   }
 
   @override
@@ -44,8 +52,15 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
     }
 
     final request = _stateManager.activeRequest;
-    if (request == null) {
-      return const Scaffold(body: Center(child: Text('No active job')));
+    if (request == null ||
+        request.status == RequestStatus.NO_PROVIDER_FOUND ||
+        request.status == RequestStatus.CANCELLED ||
+        request.status == RequestStatus.COMPLETED ||
+        request.providerId == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkAndNavigate();
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     switch (request.status) {
@@ -60,7 +75,9 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
       case RequestStatus.COMPLETED:
         return _buildWaitingPaymentUi();
       case RequestStatus.PAID:
-        return const Scaffold(body: Center(child: Text('Job paid. Return to dashboard.')));
+        return const Scaffold(
+          body: Center(child: Text('Job paid. Return to dashboard.')),
+        );
       default:
         return const Scaffold(body: Center(child: Text('Invalid status')));
     }
@@ -68,9 +85,12 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
 
   Widget _buildNavigationUi() {
     final request = _stateManager.activeRequest!;
-    
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Navigation to Driver'), automaticallyImplyLeading: false),
+      appBar: AppBar(
+        title: const Text('Navigation to Driver'),
+        automaticallyImplyLeading: false,
+      ),
       body: Column(
         children: [
           Expanded(
@@ -82,7 +102,8 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
                   const SizedBox(height: 16),
                   Text('Heading to: ${request.location}'),
                   Text('Driver: ${request.driverName}'),
-                  if (request.driverPhone != null) Text('Phone: ${request.driverPhone!}'),
+                  if (request.driverPhone != null)
+                    Text('Phone: ${request.driverPhone!}'),
                 ],
               ),
             ),
@@ -95,14 +116,17 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
               child: ElevatedButton(
                 onPressed: () async {
                   final success = await MechanicService.markArrived(request.id);
+                  if (!mounted) return;
                   if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Marked as arrived')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Marked as arrived')),
+                    );
                   }
                 },
                 child: const Text('Mark Arrived'),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -110,10 +134,13 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
 
   Widget _buildQuotationFormUi() {
     final request = _stateManager.activeRequest!;
-    
+
     // In a real app, this would be a Form widget with controllers
     return Scaffold(
-      appBar: AppBar(title: const Text('Submit Quotation'), automaticallyImplyLeading: false),
+      appBar: AppBar(
+        title: const Text('Submit Quotation'),
+        automaticallyImplyLeading: false,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -128,15 +155,27 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
                   // Hardcoded for demonstration. Add form fields in reality.
                   final quote = Quotation(
                     items: [
-                      QuotationItem(description: 'Initial Diagnostic', type: 'Diagnostic Fee', quantity: 1, unit: 'Flat', unitPrice: 5000),
+                      QuotationItem(
+                        description: 'Initial Diagnostic',
+                        type: 'Diagnostic Fee',
+                        quantity: 1,
+                        unit: 'Flat',
+                        unitPrice: 5000,
+                      ),
                     ],
                     description: 'Basic inspection done.',
                     totalAmount: 5000,
                   );
-                  
-                  final success = await MechanicService.submitQuotation(request.id, quote);
+
+                  final success = await MechanicService.submitQuotation(
+                    request.id,
+                    quote,
+                  );
+                  if (!mounted) return;
                   if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quotation submitted')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Quotation submitted')),
+                    );
                   }
                 },
                 child: const Text('Send Quotation to Driver'),
@@ -165,9 +204,12 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
 
   Widget _buildWorkModeUi() {
     final request = _stateManager.activeRequest!;
-    
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Work in Progress'), automaticallyImplyLeading: false),
+      appBar: AppBar(
+        title: const Text('Work in Progress'),
+        automaticallyImplyLeading: false,
+      ),
       body: Column(
         children: [
           const Expanded(
@@ -182,15 +224,20 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
               height: 56,
               child: ElevatedButton(
                 onPressed: () async {
-                  final success = await MechanicService.markCompleted(request.id);
+                  final success = await MechanicService.markCompleted(
+                    request.id,
+                  );
+                  if (!mounted) return;
                   if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Job marked as completed')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Job marked as completed')),
+                    );
                   }
                 },
                 child: const Text('Mark Service Completed'),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
