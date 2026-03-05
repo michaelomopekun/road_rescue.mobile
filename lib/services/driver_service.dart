@@ -7,12 +7,17 @@ class DriverService {
   /// Get driver's active request
   static Future<ServiceRequest?> getActiveRequest() async {
     try {
-      final response = await ApiClient.get('/requests/active', requiresAuth: true);
+      final response = await ApiClient.get(
+        '/requests/active',
+        requiresAuth: true,
+      );
       if (response.statusCode == 200) {
-        if (response.body.isEmpty) return null;
+        // if (response.body.isEmpty) return null;
         final data = jsonDecode(response.body);
-        if (data == null || (data is Map && data.isEmpty)) return null;
-        return ServiceRequest.fromJson(data);
+        if (data['request'] == null ||
+            (data['request'] is Map && data['request'].isEmpty))
+          return null;
+        return ServiceRequest.fromJson(data['request']);
       } else if (response.statusCode == 404) {
         return null;
       }
@@ -26,7 +31,11 @@ class DriverService {
   /// Approve quotation
   static Future<bool> approveQuotation(String quotationId) async {
     try {
-      final response = await ApiClient.post('/quotations/$quotationId/accept', body: {}, requiresAuth: true);
+      final response = await ApiClient.post(
+        '/quotations/$quotationId/accept',
+        body: {},
+        requiresAuth: true,
+      );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       print('[DriverService] Error approving quotation: $e');
@@ -37,10 +46,48 @@ class DriverService {
   /// Reject quotation
   static Future<bool> rejectQuotation(String quotationId) async {
     try {
-      final response = await ApiClient.post('/quotations/$quotationId/reject', body: {}, requiresAuth: true);
+      final response = await ApiClient.post(
+        '/quotations/$quotationId/reject',
+        body: {},
+        requiresAuth: true,
+      );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       print('[DriverService] Error rejecting quotation: $e');
+      return false;
+    }
+  }
+
+  /// Cancel a request
+  static Future<bool> cancelRequest(String requestId) async {
+    try {
+      final response = await ApiClient.post(
+        '/requests/$requestId/cancel',
+        body: {},
+        requiresAuth: true,
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('[DriverService] Error cancelling request: $e');
+      return false;
+    }
+  }
+
+  /// Process payment for accepted quotation
+  static Future<bool> processPayment({
+    required String quotationId,
+    required String idempotencyKey,
+  }) async {
+    try {
+      final response = await ApiClient.post(
+        '/payments',
+        body: {'quotationId': quotationId, 'idempotencyKey': idempotencyKey},
+        requiresAuth: true,
+      );
+
+      return response.statusCode == 201 || response.statusCode == 200;
+    } catch (e) {
+      print('[DriverService] Error processing payment: $e');
       return false;
     }
   }
@@ -57,6 +104,15 @@ class DriverService {
     required double longitude,
   }) async {
     try {
+      print('[DriverService] Checking for existing active requests...');
+      final activeRequest = await getActiveRequest();
+      if (activeRequest != null &&
+          activeRequest.status.name != 'NO_PROVIDER_FOUND') {
+        throw ApiException(
+          'You already have an active request. Please cancel it or wait for completion.',
+        );
+      }
+
       print('[DriverService] Creating service request...');
       print('[DriverService] Location: $location ($latitude, $longitude)');
 
@@ -73,8 +129,12 @@ class DriverService {
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        print('[DriverService] Service request created successfully: ${data['id']}');
-        print('[DriverService] Found ${(data['nearbyProviders'] as List?)?.length ?? 0} nearby providers');
+        print(
+          '[DriverService] Service request created successfully: ${data['id']}',
+        );
+        print(
+          '[DriverService] Found ${(data['nearbyProviders'] as List?)?.length ?? 0} nearby providers',
+        );
         return ServiceRequestResponse.fromJson(data);
       } else if (response.statusCode == 400) {
         final data = jsonDecode(response.body);
@@ -93,7 +153,9 @@ class DriverService {
       }
     } catch (e) {
       print('[DriverService] Error creating service request: $e');
-      if (e is ApiException || e is ValidationException || e is UnauthorizedException) {
+      if (e is ApiException ||
+          e is ValidationException ||
+          e is UnauthorizedException) {
         rethrow;
       }
       throw ApiException('Error creating service request: $e');
@@ -110,20 +172,21 @@ class DriverService {
     required String providerId,
   }) async {
     try {
-      print('[DriverService] Selecting provider $providerId for request $requestId...');
+      print(
+        '[DriverService] Selecting provider $providerId for request $requestId...',
+      );
 
       final response = await ApiClient.post(
         '/requests/select-provider',
-        body: {
-          'requestId': requestId,
-          'providerId': providerId,
-        },
+        body: {'requestId': requestId, 'providerId': providerId},
         requiresAuth: true,
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print('[DriverService] Provider selected successfully. Status: ${data['status']}');
+        print(
+          '[DriverService] Provider selected successfully. Status: ${data['status']}',
+        );
         return data;
       } else if (response.statusCode == 400) {
         final data = jsonDecode(response.body);
@@ -138,9 +201,7 @@ class DriverService {
       } else if (response.statusCode == 404) {
         throw ApiException('Request or provider not found');
       } else {
-        throw ApiException(
-          'Failed to select provider: ${response.statusCode}',
-        );
+        throw ApiException('Failed to select provider: ${response.statusCode}');
       }
     } catch (e) {
       print('[DriverService] Error selecting provider: $e');
@@ -156,7 +217,9 @@ class DriverService {
     int limit = 3,
   }) async {
     try {
-      print('[DriverService] Fetching recent request history (limit=$limit)...');
+      print(
+        '[DriverService] Fetching recent request history (limit=$limit)...',
+      );
 
       final response = await ApiClient.get(
         '/requests/history?page=1&limit=$limit',
@@ -165,19 +228,22 @@ class DriverService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final requests = (data['data'] as List<dynamic>?)
-                ?.map((r) =>
-                    DriverHistoryRequest.fromJson(r as Map<String, dynamic>))
+        final requests =
+            (data['data'] as List<dynamic>?)
+                ?.map(
+                  (r) =>
+                      DriverHistoryRequest.fromJson(r as Map<String, dynamic>),
+                )
                 .toList() ??
             [];
         print(
-            '[DriverService] Fetched ${requests.length} recent history items');
+          '[DriverService] Fetched ${requests.length} recent history items',
+        );
         return requests;
       } else if (response.statusCode == 401) {
         throw UnauthorizedException('Unauthorized - invalid or missing token');
       } else if (response.statusCode == 403) {
-        throw ApiException(
-            'Only DRIVER users can view their request history');
+        throw ApiException('Only DRIVER users can view their request history');
       } else {
         throw ApiException(
           'Failed to fetch request history: ${response.statusCode}',
@@ -212,13 +278,13 @@ class DriverService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         print(
-            '[DriverService] History loaded: page=${data['page']}, total=${data['total']}');
+          '[DriverService] History loaded: page=${data['page']}, total=${data['total']}',
+        );
         return DriverRequestHistoryPaginated.fromJson(data);
       } else if (response.statusCode == 401) {
         throw UnauthorizedException('Unauthorized - invalid or missing token');
       } else if (response.statusCode == 403) {
-        throw ApiException(
-            'Only DRIVER users can view their request history');
+        throw ApiException('Only DRIVER users can view their request history');
       } else {
         throw ApiException(
           'Failed to fetch request history: ${response.statusCode}',
@@ -266,7 +332,8 @@ class ServiceRequestResponse {
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       createdAt: DateTime.parse(json['createdAt'] as String),
-      nearbyProviders: (json['nearbyProviders'] as List<dynamic>?)
+      nearbyProviders:
+          (json['nearbyProviders'] as List<dynamic>?)
               ?.map((p) => NearbyProvider.fromJson(p as Map<String, dynamic>))
               .toList() ??
           [],
@@ -331,9 +398,11 @@ class DriverRequestHistoryPaginated {
 
   factory DriverRequestHistoryPaginated.fromJson(Map<String, dynamic> json) {
     return DriverRequestHistoryPaginated(
-      data: (json['data'] as List<dynamic>?)
-              ?.map((r) =>
-                  DriverHistoryRequest.fromJson(r as Map<String, dynamic>))
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map(
+                (r) => DriverHistoryRequest.fromJson(r as Map<String, dynamic>),
+              )
               .toList() ??
           [],
       page: json['page'] as int? ?? 1,
@@ -384,10 +453,15 @@ class DriverHistoryRequest {
       case 'ENGINE':
         return 'Engine Check';
       default:
-        return serviceType.replaceAll('_', ' ').toLowerCase().split(' ').map(
-            (w) => w.isNotEmpty
-                ? '${w[0].toUpperCase()}${w.substring(1)}'
-                : w).join(' ');
+        return serviceType
+            .replaceAll('_', ' ')
+            .toLowerCase()
+            .split(' ')
+            .map(
+              (w) =>
+                  w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : w,
+            )
+            .join(' ');
     }
   }
 

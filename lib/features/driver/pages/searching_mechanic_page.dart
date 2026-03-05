@@ -41,6 +41,23 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage> with Sing
 
   Future<void> _createServiceRequest() async {
     try {
+      // 0. Pre-check for duplicate active requests
+      final rm = RequestStateManager();
+      if (rm.hasActiveRequest && 
+          rm.status.name != 'PAID' && 
+          rm.status.name != 'CANCELLED' && 
+          rm.status.name != 'NO_PROVIDER_FOUND') {
+        print('[SearchingMechanicPage] Active request found. Short-circuiting and redirecting.');
+        if (mounted) {
+           Navigator.of(context).pushReplacement(
+             MaterialPageRoute(
+               builder: (context) => const ActiveRequestPage(),
+             ),
+           );
+        }
+        return;
+      }
+
       // 1. Get the driver's current location
       final hasPermission = await LocationService.requestLocationPermission();
       if (!hasPermission) {

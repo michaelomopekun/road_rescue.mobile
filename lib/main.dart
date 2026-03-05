@@ -3,6 +3,7 @@ import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/mechanic_service.dart';
 import 'package:road_rescue/services/fcm_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'package:road_rescue/services/auth_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,12 +26,21 @@ import 'features/mechanic/verification/address_step_screen.dart';
 import 'features/mechanic/verification/document_upload_screen.dart';
 import 'features/mechanic/verification/verification_pending_screen.dart';
 import 'package:road_rescue/services/request_state_manager.dart';
+import 'package:road_rescue/features/driver/pages/active_request_page.dart';
+
+import 'package:road_rescue/features/mechanic/pages/active_job_page.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class GlobalStateInitializer extends StatefulWidget {
   final Widget child;
-  const GlobalStateInitializer({super.key, required this.child});
+  final String role; // Add role to know which view to redirect to
+  
+  const GlobalStateInitializer({
+    super.key, 
+    required this.child,
+    required this.role,
+  });
 
   @override
   State<GlobalStateInitializer> createState() => _GlobalStateInitializerState();
@@ -40,8 +50,32 @@ class _GlobalStateInitializerState extends State<GlobalStateInitializer> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      RequestStateManager().initialize();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await RequestStateManager().initialize();
+      
+      // Auto-redirect if there is an active request
+      final rm = RequestStateManager();
+      if (rm.hasActiveRequest) {
+         final statusName = rm.status.name;
+         if (statusName != 'PAID' && statusName != 'CANCELLED' && statusName != 'NO_PROVIDER_FOUND') {
+           if (widget.role == 'DRIVER') {
+             navigatorKey.currentState?.pushReplacementNamed('/driver/active-request');
+           } else if (widget.role == 'PROVIDER') {
+             navigatorKey.currentState?.pushReplacementNamed('/mechanic/active-job');
+           }
+         }
+      }
+
+      // Re-register FCM token now that user is authenticated
+      // (initial registration in main() may have been skipped if auth wasn't ready)
+      try {
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          await FcmService.registerDevice(fcmToken);
+        }
+      } catch (e) {
+        print('[GlobalStateInitializer] FCM token registration error: $e');
+      }
     });
   }
 
@@ -144,7 +178,10 @@ class MyApp extends StatelessWidget {
 
                       // If approved, show full dashboard
                       if (status == 'APPROVED') {
-                        return const GlobalStateInitializer(child: MechanicDashboard());
+                        return const GlobalStateInitializer(
+                          role: 'PROVIDER', 
+                          child: MechanicDashboard()
+                        );
                       }
 
                       // Otherwise show locked dashboard
@@ -161,7 +198,10 @@ class MyApp extends StatelessWidget {
                     },
                   );
                 } else if (authData.role == 'DRIVER') {
-                  return const GlobalStateInitializer(child: DriverDashboard());
+                  return const GlobalStateInitializer(
+                    role: 'DRIVER', 
+                    child: DriverDashboard()
+                  );
                 }
               }
 
@@ -186,6 +226,8 @@ class MyApp extends StatelessWidget {
         '/driver/map': (context) => const DriverMapPage(),
         '/driver/history': (context) => const DriverHistoryPage(),
         '/driver/profile': (context) => const DriverProfilePage(),
+        '/driver/active-request': (context) => const ActiveRequestPage(),
+        '/mechanic/active-job': (context) => const ActiveJobPage(),
         '/mechanic-dashboard': (context) {
           final args =
               ModalRoute.of(context)?.settings.arguments

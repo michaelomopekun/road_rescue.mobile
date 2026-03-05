@@ -10,6 +10,7 @@ import 'package:road_rescue/services/request_state_manager.dart';
 import 'package:road_rescue/features/mechanic/pages/active_job_page.dart';
 import 'package:road_rescue/features/mechanic/widgets/incoming_job_bottom_sheet.dart';
 import 'package:road_rescue/models/service_request.dart';
+import 'package:road_rescue/models/request_status.dart';
 
 class MechanicDashboard extends StatefulWidget {
   const MechanicDashboard({super.key});
@@ -42,16 +43,24 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
 
     final state = RequestStateManager();
 
-    if (state.activeRequest != null) {
-      state.removeListener(_onRequestStateChanged);
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const ActiveJobPage()),
-      );
-      return;
-    }
+    // Always rebuild to reflect latest state (active request or not)
+    setState(() {});
 
     if (state.pendingRequests.isNotEmpty && !_isShowingBottomSheet) {
       _showIncomingJob(state.pendingRequests.first);
+    }
+  }
+
+  void _navigateToActiveJob() async {
+    RequestStateManager().removeListener(_onRequestStateChanged);
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const ActiveJobPage()),
+    );
+    // On return, re-attach listener and refresh
+    if (!_disposed && mounted) {
+      RequestStateManager().addListener(_onRequestStateChanged);
+      await RequestStateManager().loadActiveRequest();
+      setState(() {});
     }
   }
 
@@ -365,42 +374,20 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
 
               const SizedBox(height: 24),
 
-              // New Requests Section
+              // Active Request / New Requests Section
               Padding(
                 padding: const EdgeInsets.only(left: 8, bottom: 12),
                 child: Text(
-                  'New Requests',
+                  RequestStateManager().activeRequest != null
+                      ? 'Active Request'
+                      : 'New Requests',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontSize: 16,
                     color: AppColors.textPrimary,
                   ),
                 ),
               ),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 48),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border, width: 1),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.mail_outline, size: 48, color: AppColors.primary),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Waiting for new requests...',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w300,
-                        color: AppColors.textSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
+              _buildRequestSection(),
 
               const SizedBox(height: 28),
 
@@ -529,5 +516,223 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
         variant: DashboardNavVariant.fullDashboard,
       ),
     );
+  }
+
+  Widget _buildRequestSection() {
+    final activeRequest = RequestStateManager().activeRequest;
+    print('[MechanicDashboard] _buildRequestSection: activeRequest=${activeRequest != null ? 'id=${activeRequest.id}, status=${activeRequest.status}' : 'null'}');
+
+    if (activeRequest == null) {
+      // No active request — show waiting placeholder
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 48),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border, width: 1),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.mail_outline, size: 48, color: AppColors.primary),
+            const SizedBox(height: 12),
+            Text(
+              'Waiting for new requests...',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Active request exists — show card
+    return GestureDetector(
+      onTap: _navigateToActiveJob,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: _statusColor(activeRequest.status),
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Status badge
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _statusColor(activeRequest.status).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _statusColor(activeRequest.status),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _statusLabel(activeRequest.status),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: _statusColor(activeRequest.status),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Description
+            Text(
+              activeRequest.description.isNotEmpty
+                  ? activeRequest.description
+                  : 'Service request',
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8),
+
+            // Location
+            Row(
+              children: [
+                Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    activeRequest.location.isNotEmpty
+                        ? activeRequest.location
+                        : 'Location not available',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            // Driver info
+            Row(
+              children: [
+                Icon(Icons.person_outline, size: 16, color: AppColors.textSecondary),
+                const SizedBox(width: 4),
+                Text(
+                  activeRequest.driverName.isNotEmpty && activeRequest.driverName != 'Unknown Driver'
+                      ? activeRequest.driverName
+                      : 'Driver',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                if (activeRequest.distanceKm != null) ...[
+                  const SizedBox(width: 12),
+                  Icon(Icons.straighten, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${activeRequest.distanceKm!.toStringAsFixed(1)} km',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Tap to view
+            Center(
+              child: Text(
+                'Tap to view details',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _statusColor(RequestStatus status) {
+    switch (status) {
+      case RequestStatus.PENDING:
+        return Colors.orange;
+      case RequestStatus.ACCEPTED:
+        return Colors.blue;
+      case RequestStatus.ARRIVED:
+        return Colors.teal;
+      case RequestStatus.QUOTED:
+        return Colors.purple;
+      case RequestStatus.IN_PROGRESS:
+        return Colors.deepOrange;
+      case RequestStatus.COMPLETED:
+        return Colors.green;
+      case RequestStatus.PAID:
+        return Colors.green;
+      case RequestStatus.CANCELLED:
+        return Colors.red;
+      case RequestStatus.NO_PROVIDER_FOUND:
+        return Colors.grey;
+    }
+  }
+
+  String _statusLabel(RequestStatus status) {
+    switch (status) {
+      case RequestStatus.PENDING:
+        return 'Pending';
+      case RequestStatus.ACCEPTED:
+        return 'Accepted — Head to driver';
+      case RequestStatus.ARRIVED:
+        return 'Arrived — Inspect vehicle';
+      case RequestStatus.QUOTED:
+        return 'Quoted — Awaiting approval';
+      case RequestStatus.IN_PROGRESS:
+        return 'In Progress';
+      case RequestStatus.COMPLETED:
+        return 'Completed — Awaiting payment';
+      case RequestStatus.PAID:
+        return 'Paid';
+      case RequestStatus.CANCELLED:
+        return 'Cancelled';
+      case RequestStatus.NO_PROVIDER_FOUND:
+        return 'Missed Request';
+    }
   }
 }

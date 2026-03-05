@@ -196,7 +196,7 @@ class FcmService {
     try {
       // final platform = kIsWeb ? 'web' : Platform.operatingSystem;
       await ApiClient.post(
-        '/users/register-device',
+        '/auth/register-device',
         body: {
           'deviceToken': token,
           // 'platform': platform,

@@ -6,7 +6,8 @@ enum RequestStatus {
   IN_PROGRESS,
   COMPLETED,
   PAID,
-  CANCELLED;
+  CANCELLED,
+  NO_PROVIDER_FOUND;
 
   String get driverLabel {
     switch (this) {
@@ -26,6 +27,8 @@ enum RequestStatus {
         return 'Paid';
       case RequestStatus.CANCELLED:
         return 'Cancelled';
+      case RequestStatus.NO_PROVIDER_FOUND:
+        return 'No Mechanics Available';
     }
   }
 
@@ -47,11 +50,13 @@ enum RequestStatus {
         return 'Paid';
       case RequestStatus.CANCELLED:
         return 'Cancelled';
+      case RequestStatus.NO_PROVIDER_FOUND:
+        return 'Missed Request';
     }
   }
 
   bool isValidTransition(RequestStatus to) {
-    if (this == RequestStatus.CANCELLED) return false;
+    if (this == RequestStatus.CANCELLED || this == RequestStatus.NO_PROVIDER_FOUND) return false;
     if (to == RequestStatus.CANCELLED) return true; // Can cancel from anywhere
 
     switch (this) {
@@ -71,6 +76,8 @@ enum RequestStatus {
       case RequestStatus.PAID:
         return false;
       case RequestStatus.CANCELLED:
+        return false;
+      case RequestStatus.NO_PROVIDER_FOUND:
         return false;
     }
   }
