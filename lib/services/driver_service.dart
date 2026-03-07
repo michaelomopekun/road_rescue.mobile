@@ -12,14 +12,13 @@ class DriverService {
         requiresAuth: true,
       );
       if (response.statusCode == 200) {
-        // if (response.body.isEmpty) return null;
+        if (response.body.isEmpty) return null;
         final data = jsonDecode(response.body);
-        if (data['request'] == null ||
-            (data['request'] is Map && data['request'].isEmpty))
-          return null;
-        return ServiceRequest.fromJson(data['request']);
+        if (data == null || (data is Map && data.isEmpty)) return null;
+        // 200 = active request exists, returned at root level
+        return ServiceRequest.fromJson(data as Map<String, dynamic>);
       } else if (response.statusCode == 404) {
-        return null;
+        return null; // No active request
       }
       return null;
     } catch (e) {
