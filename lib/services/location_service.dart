@@ -88,10 +88,9 @@ class LocationService {
 
     _locationSubscription =
         Geolocator.getPositionStream(
-          locationSettings: LocationSettings(
+          locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
             distanceFilter: 10, // Only update if moved 10 meters
-            timeLimit: _locationUpdateInterval,
           ),
         ).listen(
           (position) {

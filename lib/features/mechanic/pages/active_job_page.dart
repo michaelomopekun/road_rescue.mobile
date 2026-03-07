@@ -3,6 +3,7 @@ import 'package:road_rescue/models/request_status.dart';
 import 'package:road_rescue/models/quotation.dart';
 import 'package:road_rescue/services/request_state_manager.dart';
 import 'package:road_rescue/services/mechanic_service.dart';
+import 'package:road_rescue/features/mechanic/widgets/mechanic_navigation_view.dart';
 
 class ActiveJobPage extends StatefulWidget {
   const ActiveJobPage({super.key});
@@ -85,51 +86,7 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
 
   Widget _buildNavigationUi() {
     final request = _stateManager.activeRequest!;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Navigation to Driver'),
-        automaticallyImplyLeading: false,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.navigation, size: 80, color: Colors.blue),
-                  const SizedBox(height: 16),
-                  Text('Heading to: ${request.location}'),
-                  Text('Driver: ${request.driverName}'),
-                  if (request.driverPhone != null)
-                    Text('Phone: ${request.driverPhone!}'),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () async {
-                  final success = await MechanicService.markArrived(request.id);
-                  if (!mounted) return;
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Marked as arrived')),
-                    );
-                  }
-                },
-                child: const Text('Mark Arrived'),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return MechanicNavigationView(request: request);
   }
 
   Widget _buildQuotationFormUi() {

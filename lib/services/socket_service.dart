@@ -17,20 +17,24 @@ class SocketService {
   // request:new — slim payload, parse as ServiceRequest with defaults for missing fields
   final _requestNewController = StreamController<ServiceRequest>.broadcast();
   // request:updated — backend sends { requestId, status, timestamp }, NOT a full object
-  final _requestUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
-  final _requestTakenController = StreamController<String>.broadcast(); // Yields requestId
+  final _requestUpdatedController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _requestTakenController =
+      StreamController<String>.broadcast(); // Yields requestId
 
   // Streams for /tracking namespace
   final _mechanicLocationController = StreamController<LatLng>.broadcast();
 
   // Public getters for streams
   Stream<ServiceRequest> get onRequestNew => _requestNewController.stream;
-  Stream<Map<String, dynamic>> get onRequestUpdated => _requestUpdatedController.stream;
+  Stream<Map<String, dynamic>> get onRequestUpdated =>
+      _requestUpdatedController.stream;
   Stream<String> get onRequestTaken => _requestTakenController.stream;
   Stream<LatLng> get onMechanicLocation => _mechanicLocationController.stream;
 
   bool get isConnected =>
-      (_requestSocket?.connected ?? false) || (_trackingSocket?.connected ?? false);
+      (_requestSocket?.connected ?? false) ||
+      (_trackingSocket?.connected ?? false);
 
   /// Connect to both namespaces
   void connect(String token) {
@@ -38,22 +42,22 @@ class SocketService {
 
     final baseUrl = ApiClient.baseUrl;
 
-    // Connect to /requests namespace — use auth object (socket.io v3+ standard)
+    // Connect to /requests namespace — token via query param
     _requestSocket = io.io('$baseUrl/requests', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
-      'auth': {'token': token},
+      'query': {'token': token},
       'reconnection': true,
       'reconnectionDelay': 1000,
       'reconnectionDelayMax': 5000,
       'reconnectionAttempts': 10,
     });
 
-    // Connect to /tracking namespace
+    // Connect to /tracking namespace — token via query param
     _trackingSocket = io.io('$baseUrl/tracking', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
-      'auth': {'token': token},
+      'query': {'token': token},
       'reconnection': true,
       'reconnectionDelay': 1000,
       'reconnectionDelayMax': 5000,
@@ -82,7 +86,9 @@ class SocketService {
 
     // Backend custom events for connection status
     socket.on('connection:success', (data) {
-      print('[SocketService] /requests connection:success — ${data['message']} (socketId: ${data['socketId']})');
+      print(
+        '[SocketService] /requests connection:success — ${data['message']} (socketId: ${data['socketId']})',
+      );
     });
 
     socket.on('connection:error', (data) {
@@ -145,35 +151,69 @@ class SocketService {
 
     // Backend custom events for connection status
     socket.on('connection:success', (data) {
-      print('[SocketService] /tracking connection:success — ${data['message']}');
+      print(
+        '[SocketService] /tracking connection:success — ${data['message']}',
+      );
     });
 
     socket.on('connection:error', (data) {
       print('[SocketService] /tracking connection:error — ${data['error']}');
     });
 
-    // mechanic:location — { latitude, longitude, timestamp, providerId }
-    socket.on('mechanic:location', (data) {
+    // mechanic:location:updated — { lat, lng, timestamp }
+    socket.on('mechanic:location:updated', (data) {
       try {
-        final lat = double.tryParse(data['latitude']?.toString() ?? '') ?? 0.0;
-        final lng = double.tryParse(data['longitude']?.toString() ?? '') ?? 0.0;
+        final lat = double.tryParse(data['lat']?.toString() ?? '') ?? 0.0;
+        final lng = double.tryParse(data['lng']?.toString() ?? '') ?? 0.0;
 
         if (lat != 0.0 && lng != 0.0) {
           _mechanicLocationController.add(LatLng(lat, lng));
         }
       } catch (e) {
-        print('[SocketService] Error parsing mechanic:location — $e');
+        print('[SocketService] Error parsing mechanic:location:updated — $e');
+      }
+    });
+
+    // mechanic:current-location — response to request:current-location
+    socket.on('mechanic:current-location', (data) {
+      try {
+        if (data == null) return;
+        final lat = double.tryParse(data['lat']?.toString() ?? '') ?? 0.0;
+        final lng = double.tryParse(data['lng']?.toString() ?? '') ?? 0.0;
+
+        if (lat != 0.0 && lng != 0.0) {
+          _mechanicLocationController.add(LatLng(lat, lng));
+        }
+      } catch (e) {
+        print('[SocketService] Error parsing mechanic:current-location — $e');
       }
     });
   }
 
   /// Send mechanic location update (provider side)
-  void sendLocationUpdate(String requestId, double latitude, double longitude) {
+  void sendLocationUpdate(String requestId, double lat, double lng) {
     _trackingSocket?.emit('mechanic:location:update', {
       'requestId': requestId,
-      'latitude': latitude,
-      'longitude': longitude,
+      'lat': lat,
+      'lng': lng,
     });
+  }
+
+  /// Join a request tracking room (both driver and mechanic should call this)
+  void joinRequest(String requestId) {
+    _trackingSocket?.emit('request:join', {'requestId': requestId});
+    print('[SocketService] Joining tracking room for request: $requestId');
+  }
+
+  /// Leave a request tracking room
+  void leaveRequest(String requestId) {
+    _trackingSocket?.emit('request:leave', {'requestId': requestId});
+    print('[SocketService] Leaving tracking room for request: $requestId');
+  }
+
+  /// Request the current/last known mechanic location for a request
+  void requestCurrentLocation(String requestId) {
+    _trackingSocket?.emit('request:current-location', {'requestId': requestId});
   }
 
   /// Disconnect all sockets
