@@ -67,11 +67,15 @@ class MechanicService {
   /// Submit quotation
   static Future<bool> submitQuotation(
     String requestId,
+    String? providerId,
     Quotation quotation,
   ) async {
     try {
       final body = quotation.toJson();
       body['requestId'] = requestId;
+      if (providerId != null) {
+        body['providerId'] = providerId;
+      }
 
       final response = await ApiClient.post(
         '/quotations',

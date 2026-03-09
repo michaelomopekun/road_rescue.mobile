@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/models/request_status.dart';
-import 'package:road_rescue/models/quotation.dart';
 import 'package:road_rescue/services/request_state_manager.dart';
 import 'package:road_rescue/services/mechanic_service.dart';
 import 'package:road_rescue/features/mechanic/widgets/mechanic_navigation_view.dart';
+import 'package:road_rescue/features/mechanic/widgets/create_service_quotation_view.dart';
 
 class ActiveJobPage extends StatefulWidget {
   const ActiveJobPage({super.key});
@@ -92,55 +92,17 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
   Widget _buildQuotationFormUi() {
     final request = _stateManager.activeRequest!;
 
-    // In a real app, this would be a Form widget with controllers
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Submit Quotation'),
-        automaticallyImplyLeading: false,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            const Text('Inspect the vehicle and enter quotation details.'),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () async {
-                  // Hardcoded for demonstration. Add form fields in reality.
-                  final quote = Quotation(
-                    items: [
-                      QuotationItem(
-                        description: 'Initial Diagnostic',
-                        type: 'Diagnostic Fee',
-                        quantity: 1,
-                        unit: 'Flat',
-                        unitPrice: 5000,
-                      ),
-                    ],
-                    description: 'Basic inspection done.',
-                    totalAmount: 5000,
-                  );
-
-                  final success = await MechanicService.submitQuotation(
-                    request.id,
-                    quote,
-                  );
-                  if (!mounted) return;
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Quotation submitted')),
-                    );
-                  }
-                },
-                child: const Text('Send Quotation to Driver'),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return CreateServiceQuotationView(
+      request: request,
+      onCancel: () {
+        // Maybe navigate back to dashboard or show confirmation
+        Navigator.of(context).pushReplacementNamed('/mechanic');
+      },
+      onSubmitted: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Quotation submitted successfully')),
+        );
+      },
     );
   }
 
