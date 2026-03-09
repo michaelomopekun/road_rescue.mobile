@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:road_rescue/models/service_request.dart';
 import 'package:road_rescue/services/driver_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:road_rescue/services/toast_service.dart';
 
 class PaymentView extends StatefulWidget {
   final ServiceRequest request;
@@ -18,8 +19,7 @@ class _PaymentViewState extends State<PaymentView> {
   Future<void> _processPayment() async {
     final quoteId = widget.request.quotation?.id;
     if (quoteId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error: No quotation found to pay for.')));
+      ToastService.showError(context, 'Error: No quotation found to pay for.');
       return;
     }
 
@@ -28,8 +28,9 @@ class _PaymentViewState extends State<PaymentView> {
     });
 
     try {
-      final idempotencyKey = 'driver-${widget.request.id}-quotation-$quoteId-${const Uuid().v4()}';
-      
+      final idempotencyKey =
+          'driver-${widget.request.id}-quotation-$quoteId-${const Uuid().v4()}';
+
       final success = await DriverService.processPayment(
         quotationId: quoteId,
         idempotencyKey: idempotencyKey,
@@ -38,13 +39,14 @@ class _PaymentViewState extends State<PaymentView> {
       if (success) {
         // We wait for the socket state update to turn the request PAID organically
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Payment processing. Please wait...')));
+          ToastService.showWarning(
+            context,
+            'Payment processing. Please wait...',
+          );
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Payment failed. Please try again.')));
+          ToastService.showError(context, 'Payment failed. Please try again.');
         }
       }
     } finally {
@@ -69,15 +71,17 @@ class _PaymentViewState extends State<PaymentView> {
           children: [
             const Icon(Icons.check_circle, size: 80, color: Colors.green),
             const SizedBox(height: 16),
-            const Text('Service Completed Successfully!',
-                style: TextStyle(fontSize: 20)),
+            const Text(
+              'Service Completed Successfully!',
+              style: TextStyle(fontSize: 20),
+            ),
             const SizedBox(height: 24),
             _isProcessing
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
                     onPressed: _processPayment,
                     child: const Text('Proceed to Payment'),
-                  )
+                  ),
           ],
         ),
       ),

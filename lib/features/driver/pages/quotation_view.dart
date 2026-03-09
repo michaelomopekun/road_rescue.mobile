@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/models/service_request.dart';
 import 'package:road_rescue/services/driver_service.dart';
+import 'package:road_rescue/services/toast_service.dart';
 
 class QuotationView extends StatelessWidget {
   final ServiceRequest request;
   final VoidCallback? onCancel;
 
-  const QuotationView({
-    super.key,
-    required this.request,
-    this.onCancel,
-  });
+  const QuotationView({super.key, required this.request, this.onCancel});
 
   @override
   Widget build(BuildContext context) {
@@ -25,14 +22,14 @@ class QuotationView extends StatelessWidget {
             if (onCancel != null)
               TextButton(
                 onPressed: onCancel,
-                child:
-                    const Text('Cancel', style: TextStyle(color: Colors.red)),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.red),
+                ),
               ),
           ],
         ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -53,34 +50,46 @@ class QuotationView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Here is the breakdown of the service:',
-                style: TextStyle(fontSize: 16)),
+            const Text(
+              'Here is the breakdown of the service:',
+              style: TextStyle(fontSize: 16),
+            ),
             const SizedBox(height: 16),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    ...quote.items.map((item) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('${item.quantity}x ${item.type}'),
-                              Text('N${item.total}'),
-                            ],
-                          ),
-                        )),
+                    ...quote.items.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('${item.quantity}x ${item.type}'),
+                            Text('N${item.total}'),
+                          ],
+                        ),
+                      ),
+                    ),
                     const Divider(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total:',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18)),
-                        Text('N${quote.totalAmount}',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18)),
+                        const Text(
+                          'Total:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        Text(
+                          'N${quote.totalAmount}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -95,10 +104,11 @@ class QuotationView extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () async {
-                      final success = await DriverService.rejectQuotation(quote.id);
+                      final success = await DriverService.rejectQuotation(
+                        quote.id,
+                      );
                       if (success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Quotation rejected.')));
+                        ToastService.showError(context, 'Quotation rejected.');
                       }
                     },
                     child: const Text('Reject'),
@@ -108,17 +118,21 @@ class QuotationView extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
-                      final success = await DriverService.approveQuotation(quote.id);
+                      final success = await DriverService.approveQuotation(
+                        quote.id,
+                      );
                       if (success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Quotation approved.')));
+                        ToastService.showSuccess(
+                          context,
+                          'Quotation approved.',
+                        );
                       }
                     },
                     child: const Text('Approve'),
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

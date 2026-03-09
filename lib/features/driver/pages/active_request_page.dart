@@ -8,6 +8,7 @@ import 'package:road_rescue/features/driver/pages/tracking_view.dart';
 import 'package:road_rescue/features/driver/pages/quotation_view.dart';
 import 'package:road_rescue/features/driver/pages/payment_view.dart';
 import 'package:road_rescue/features/driver/pages/no_provider_view.dart';
+import 'package:road_rescue/services/toast_service.dart';
 
 class ActiveRequestPage extends StatefulWidget {
   const ActiveRequestPage({super.key});
@@ -59,16 +60,12 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
     final success = await DriverService.cancelRequest(request.id);
     if (!success) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to cancel request.')),
-        );
+        ToastService.showError(context, 'Failed to cancel request.');
       }
     } else {
       // On success, backend should emit CANCELLED over socket, which will trigger redirection.
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Cancelling request...')));
+        ToastService.showSuccess(context, 'Cancelling request...');
       }
     }
   }
