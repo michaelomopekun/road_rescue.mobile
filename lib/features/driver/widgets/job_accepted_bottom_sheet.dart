@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:road_rescue/services/api_client.dart';
+import 'package:road_rescue/services/toast_service.dart';
 
 /// Bottom sheet shown to the driver when a mechanic accepts their request.
 ///
@@ -102,9 +103,7 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
     final lng = widget.mechanicLongitude;
 
     // Try Google Maps first, fallback to Apple Maps on iOS
-    final googleMapsUrl = Uri.parse(
-      'google.navigation:q=$lat,$lng&mode=d',
-    );
+    final googleMapsUrl = Uri.parse('google.navigation:q=$lat,$lng&mode=d');
     final appleMapsUrl = Uri.parse(
       'https://maps.apple.com/?daddr=$lat,$lng&dirflg=d',
     );
@@ -123,9 +122,7 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
     } catch (e) {
       print('[JobAccepted] Error launching navigation: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open maps application')),
-        );
+        ToastService.showError(context, 'Could not open maps application');
       }
     }
   }
@@ -139,9 +136,7 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
     } catch (e) {
       print('[JobAccepted] Error launching phone: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open phone dialer')),
-        );
+        ToastService.showError(context, 'Could not open phone dialer');
       }
     }
   }
@@ -152,9 +147,7 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
     try {
       final response = await ApiClient.post(
         '/requests/complete',
-        body: {
-          'requestId': widget.requestId,
-        },
+        body: {'requestId': widget.requestId},
         requiresAuth: true,
       );
 
@@ -175,8 +168,9 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
         print('[JobAccepted] Failed to complete: ${response.statusCode}');
         if (mounted) {
           setState(() => _isCompleting = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to mark as completed. Try again.')),
+          ToastService.showError(
+            context,
+            'Failed to mark as completed. Try again.',
           );
         }
       }
@@ -184,9 +178,7 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
       print('[JobAccepted] Error completing request: $e');
       if (mounted) {
         setState(() => _isCompleting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Network error. Try again.')),
-        );
+        ToastService.showError(context, 'Network error. Try again.');
       }
     }
   }
@@ -241,10 +233,7 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF10B981),
-                      Color(0xFF059669),
-                    ],
+                    colors: [Color(0xFF10B981), Color(0xFF059669)],
                   ),
                   shape: BoxShape.circle,
                   boxShadow: [
@@ -308,15 +297,14 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF1E4C4E),
-                            Color(0xFF2D6A6C),
-                          ],
+                          colors: [Color(0xFF1E4C4E), Color(0xFF2D6A6C)],
                         ),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1E4C4E).withValues(alpha: 0.2),
+                            color: const Color(
+                              0xFF1E4C4E,
+                            ).withValues(alpha: 0.2),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -403,7 +391,11 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
                   height: 56,
                   child: ElevatedButton.icon(
                     onPressed: _startNavigation,
-                    icon: const Icon(Icons.navigation_rounded, color: Colors.white, size: 22),
+                    icon: const Icon(
+                      Icons.navigation_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                     label: const Text(
                       'Start Navigating',
                       style: TextStyle(
@@ -433,7 +425,11 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
                   height: 56,
                   child: OutlinedButton.icon(
                     onPressed: _callMechanic,
-                    icon: const Icon(Icons.phone_outlined, color: Color(0xFF1E4C4E), size: 20),
+                    icon: const Icon(
+                      Icons.phone_outlined,
+                      color: Color(0xFF1E4C4E),
+                      size: 20,
+                    ),
                     label: Text(
                       'Call ${_getFirstName(widget.mechanicName)}',
                       style: const TextStyle(
@@ -443,7 +439,10 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF1E4C4E), width: 1.5),
+                      side: const BorderSide(
+                        color: Color(0xFF1E4C4E),
+                        width: 1.5,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -468,12 +467,20 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
-                        : const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                        : const Icon(
+                            Icons.check_circle_outline,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                     label: Text(
-                      _isCompleting ? 'Completing...' : 'Mark Service as Completed',
+                      _isCompleting
+                          ? 'Completing...'
+                          : 'Mark Service as Completed',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -482,7 +489,9 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF10B981),
-                      disabledBackgroundColor: const Color(0xFF10B981).withValues(alpha: 0.6),
+                      disabledBackgroundColor: const Color(
+                        0xFF10B981,
+                      ).withValues(alpha: 0.6),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -501,7 +510,9 @@ class _JobAcceptedBottomSheetState extends State<JobAcceptedBottomSheet>
                   decoration: BoxDecoration(
                     color: const Color(0xFFECFDF5),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Column(
                     children: [

@@ -4,6 +4,7 @@ import 'package:road_rescue/services/request_state_manager.dart';
 import 'package:road_rescue/services/mechanic_service.dart';
 import 'package:road_rescue/features/mechanic/widgets/mechanic_navigation_view.dart';
 import 'package:road_rescue/features/mechanic/widgets/create_service_quotation_view.dart';
+import 'package:road_rescue/services/toast_service.dart';
 
 class ActiveJobPage extends StatefulWidget {
   const ActiveJobPage({super.key});
@@ -99,9 +100,7 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
         Navigator.of(context).pushReplacementNamed('/mechanic');
       },
       onSubmitted: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Quotation submitted successfully')),
-        );
+        ToastService.showSuccess(context, 'Quotation submitted successfully');
       },
     );
   }
@@ -148,8 +147,9 @@ class _ActiveJobPageState extends State<ActiveJobPage> {
                   );
                   if (!mounted) return;
                   if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Job marked as completed')),
+                    ToastService.showSuccess(
+                      context,
+                      'Job marked as completed',
                     );
                   }
                 },

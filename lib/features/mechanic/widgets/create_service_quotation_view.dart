@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:road_rescue/models/quotation.dart';
 import 'package:road_rescue/models/service_request.dart';
 import 'package:road_rescue/services/mechanic_service.dart';
+import 'package:road_rescue/services/toast_service.dart';
 
 class CreateServiceQuotationView extends StatefulWidget {
   final ServiceRequest request;
@@ -101,18 +102,15 @@ class _CreateServiceQuotationViewState
 
   Future<void> _submitQuotation() async {
     if (_items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please add at least one item to the quotation'),
-        ),
+      ToastService.showError(
+        context,
+        'Please add at least one item to the quotation',
       );
       return;
     }
 
     if (_serviceDescriptionController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a service description')),
-      );
+      ToastService.showError(context, 'Please enter a service description');
       return;
     }
 
@@ -136,15 +134,11 @@ class _CreateServiceQuotationViewState
       if (success && mounted) {
         widget.onSubmitted();
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to submit quotation')),
-        );
+        ToastService.showError(context, 'Failed to submit quotation');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ToastService.showError(context, 'Error: $e');
       }
     } finally {
       if (mounted) {

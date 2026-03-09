@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
+import 'package:road_rescue/services/toast_service.dart';
 
 class Transaction {
   final String id;
@@ -173,10 +174,9 @@ class _MechanicWalletPageState extends State<MechanicWalletPage> {
                     height: 52,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Withdraw funds feature coming soon'),
-                          ),
+                        ToastService.showWarning(
+                          context,
+                          'Withdraw funds feature coming soon',
                         );
                       },
                       icon: const Icon(

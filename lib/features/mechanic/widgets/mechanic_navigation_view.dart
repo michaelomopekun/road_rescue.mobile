@@ -7,6 +7,7 @@ import 'package:road_rescue/services/location_service.dart';
 import 'package:road_rescue/services/socket_service.dart';
 import 'package:road_rescue/services/mechanic_service.dart';
 import 'package:road_rescue/theme/app_colors.dart';
+import 'package:road_rescue/services/toast_service.dart';
 
 /// Two-phase navigation view for mechanic heading to driver.
 /// Phase 1: Route overview with "Start Navigation" button.
@@ -232,20 +233,14 @@ class _MechanicNavigationViewState extends State<MechanicNavigationView> {
       if (!mounted) return;
 
       if (success) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Marked as arrived')));
+        ToastService.showSuccess(context, 'Marked as arrived');
         widget.onArrived?.call();
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to mark arrived')));
+        ToastService.showError(context, 'Failed to mark arrived');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ToastService.showError(context, 'Error: $e');
       }
     } finally {
       if (!_disposed) setState(() => _isMarkingArrived = false);
