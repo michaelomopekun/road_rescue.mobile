@@ -9,7 +9,7 @@ class Quotation {
     this.id = '',
     required this.items,
     required this.description,
-    required this.totalAmount,
+    this.totalAmount = 0.0,
     this.status,
   });
 
@@ -31,7 +31,6 @@ class Quotation {
       if (id.isNotEmpty) 'id': id,
       'items': items.map((e) => e.toJson()).toList(),
       'description': description,
-      'totalAmount': totalAmount,
     };
   }
 }

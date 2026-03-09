@@ -122,7 +122,6 @@ class _CreateServiceQuotationViewState
       final quotation = Quotation(
         items: _items,
         description: _serviceDescriptionController.text.trim(),
-        totalAmount: _grandTotal,
       );
 
       final success = await MechanicService.submitQuotation(
@@ -138,7 +137,19 @@ class _CreateServiceQuotationViewState
       }
     } catch (e) {
       if (mounted) {
-        ToastService.showError(context, 'Error: $e');
+        if (e.toString().contains('UnauthorizedException') ||
+            e.toString().contains('No token found') ||
+            e.toString().contains('Unauthorized')) {
+          ToastService.showError(
+            context,
+            'Session expired. Please log in again.',
+          );
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/signin', (route) => false);
+        } else {
+          ToastService.showError(context, 'Error: $e');
+        }
       }
     } finally {
       if (mounted) {

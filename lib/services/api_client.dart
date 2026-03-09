@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/exceptions.dart';
+import 'package:road_rescue/main.dart' show navigatorKey;
 // import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 
@@ -179,11 +180,31 @@ class ApiClient {
     if (requiresAuth) {
       final token = await TokenService.getToken();
       if (token == null) {
+        _handleUnauthorized();
         throw UnauthorizedException('No token found. Please login again.');
       }
       headers['Authorization'] = 'Bearer $token';
     }
 
     return headers;
+  }
+
+  /// Centralized handler for 401 Unauthorized API responses
+  static void _handleUnauthorized() {
+    TokenService.clearAuthData();
+
+    // Defer the UI action out of the current build cycle
+    Future.microtask(() {
+      try {
+        if (navigatorKey.currentState != null) {
+          navigatorKey.currentState!.pushNamedAndRemoveUntil(
+            '/login',
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        print('[ApiClient] Could not invoke navigator override: $e');
+      }
+    });
   }
 }
