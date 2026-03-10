@@ -7,9 +7,9 @@ import 'package:road_rescue/features/driver/pages/searching_mechanic_page.dart';
 import 'package:road_rescue/features/driver/pages/tracking_view.dart';
 import 'package:road_rescue/features/driver/widgets/driver_tracking_view.dart';
 import 'package:road_rescue/features/driver/pages/quotation_view.dart';
-import 'package:road_rescue/features/driver/pages/payment_view.dart';
 import 'package:road_rescue/features/driver/pages/no_provider_view.dart';
 import 'package:road_rescue/services/toast_service.dart';
+import 'package:uuid/uuid.dart';
 
 class ActiveRequestPage extends StatefulWidget {
   const ActiveRequestPage({super.key});
@@ -50,6 +50,50 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
         _stateManager.status == RequestStatus.PAID) {
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/driver');
+      }
+    }
+  }
+
+  bool _isProcessingPayment = false;
+
+  Future<void> _processPayment() async {
+    final request = _stateManager.activeRequest;
+    final quoteId = request?.quotation?.id;
+    if (quoteId == null) {
+      ToastService.showError(context, 'Error: No quotation found to pay for.');
+      return;
+    }
+
+    setState(() {
+      _isProcessingPayment = true;
+    });
+
+    try {
+      final idempotencyKey =
+          'driver-${request!.id}-quotation-$quoteId-${const Uuid().v4()}';
+
+      final success = await DriverService.processPayment(
+        quotationId: quoteId,
+        idempotencyKey: idempotencyKey,
+      );
+
+      if (success) {
+        if (mounted) {
+          ToastService.showWarning(
+            context,
+            'Payment processing. Please wait...',
+          );
+        }
+      } else {
+        if (mounted) {
+          ToastService.showError(context, 'Payment failed. Please try again.');
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingPayment = false;
+        });
       }
     }
   }
@@ -133,7 +177,14 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
           onMapCreated: (controller) => _mapController = controller,
         );
       case RequestStatus.COMPLETED:
-        return PaymentView(request: request);
+        return TrackingView(
+          request: request,
+          mechanicLocation: _stateManager.mechanicLocation,
+          statusText: 'Service Completed',
+          onMapCreated: (controller) => _mapController = controller,
+          isPaymentPhase: true,
+          onPay: _isProcessingPayment ? null : _processPayment,
+        );
       case RequestStatus.NO_PROVIDER_FOUND:
         return NoProviderView(
           onRetry: _handleRetryNoProvider,

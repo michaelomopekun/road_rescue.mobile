@@ -27,6 +27,31 @@ class DriverService {
     }
   }
 
+  /// Get quotation total amount
+  static Future<QuotationTotalResponse?> getQuotationTotal(
+    String quotationId,
+  ) async {
+    try {
+      final response = await ApiClient.get(
+        '/quotations/$quotationId/total',
+        requiresAuth: true,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return QuotationTotalResponse.fromJson(data);
+      } else {
+        print(
+          '[DriverService] Failed to load quotation total: ${response.statusCode}',
+        );
+        return null;
+      }
+    } catch (e) {
+      print('[DriverService] Error fetching quotation total: $e');
+      return null;
+    }
+  }
+
   /// Approve quotation
   static Future<bool> approveQuotation(String quotationId) async {
     try {
@@ -477,6 +502,67 @@ class DriverHistoryRequest {
           ? DateTime.parse(json['completedAt'] as String)
           : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+}
+
+/// Model for quotation items
+class QuotationTotalItem {
+  final String id;
+  final String type;
+  final String description;
+  final int quantity;
+  final String unit;
+  final num unitPrice;
+  final num subtotal;
+
+  QuotationTotalItem({
+    required this.id,
+    required this.type,
+    required this.description,
+    required this.quantity,
+    required this.unit,
+    required this.unitPrice,
+    required this.subtotal,
+  });
+
+  factory QuotationTotalItem.fromJson(Map<String, dynamic> json) {
+    return QuotationTotalItem(
+      id: json['id'] as String,
+      type: json['type'] as String,
+      description: json['description'] as String,
+      quantity: json['quantity'] as int,
+      unit: json['unit'] as String,
+      unitPrice: json['unitPrice'] as num,
+      subtotal: json['subtotal'] as num,
+    );
+  }
+}
+
+/// Response model for GET /quotations/{id}/total
+class QuotationTotalResponse {
+  final String quotationId;
+  final List<QuotationTotalItem> items;
+  final num totalAmount;
+
+  QuotationTotalResponse({
+    required this.quotationId,
+    required this.items,
+    required this.totalAmount,
+  });
+
+  factory QuotationTotalResponse.fromJson(Map<String, dynamic> json) {
+    return QuotationTotalResponse(
+      quotationId: json['quotationId'] as String,
+      items:
+          (json['items'] as List<dynamic>?)
+              ?.map(
+                (item) =>
+                    QuotationTotalItem.fromJson(item as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
+      totalAmount: json['totalAmount'] as num,
     );
   }
 }
