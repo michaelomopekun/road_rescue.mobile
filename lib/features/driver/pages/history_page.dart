@@ -118,8 +118,18 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
 
   String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     String weekday = weekdays[date.weekday - 1];
@@ -200,7 +210,11 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
           children: [
             Padding(
               padding: const EdgeInsets.only(
-                  left: 24.0, right: 24.0, top: 24.0, bottom: 8.0),
+                left: 24.0,
+                right: 24.0,
+                top: 24.0,
+                bottom: 8.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -226,11 +240,13 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
 
             // Status filter tabs
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 16.0,
+              ),
               child: Row(
                 children: [
-                  _buildStatusTab('COMPLETED', 'Completed'),
+                  _buildStatusTab('PAID', 'Completed'),
                   const SizedBox(width: 12),
                   _buildStatusTab('CANCELLED', 'Cancelled'),
                 ],
@@ -242,48 +258,50 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
               child: _isLoading && _requests.isEmpty
                   ? const Center(child: CircularProgressIndicator())
                   : _requests.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _selectedStatus == 'COMPLETED'
-                                    ? Icons.check_circle_outline
-                                    : Icons.cancel_outlined,
-                                size: 48,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'No ${_selectedStatus.toLowerCase()} requests yet',
-                                style: TextStyle(color: Colors.grey[600]),
-                              ),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _selectedStatus == 'COMPLETED'
+                                ? Icons.check_circle_outline
+                                : Icons.cancel_outlined,
+                            size: 48,
+                            color: Colors.grey[400],
                           ),
-                        )
-                      : RefreshIndicator(
-                          onRefresh: _refreshHistory,
-                          child: ListView.builder(
-                            controller: _scrollController,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 8),
-                            itemCount: _requests.length +
-                                (_currentPage < _totalPages ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              // Show loading indicator at bottom when loading more
-                              if (index == _requests.length) {
-                                return const Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Center(
-                                      child: CircularProgressIndicator()),
-                                );
-                              }
-
-                              final request = _requests[index];
-                              return _buildHistoryCard(request);
-                            },
+                          const SizedBox(height: 12),
+                          Text(
+                            'No ${_selectedStatus.toLowerCase()} requests yet',
+                            style: TextStyle(color: Colors.grey[600]),
                           ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _refreshHistory,
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
                         ),
+                        itemCount:
+                            _requests.length +
+                            (_currentPage < _totalPages ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          // Show loading indicator at bottom when loading more
+                          if (index == _requests.length) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+
+                          final request = _requests[index];
+                          return _buildHistoryCard(request);
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -387,8 +405,10 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: isCancelled
                         ? Colors.transparent
@@ -461,9 +481,9 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
               children: [
                 Text(
                   'Request Details',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -475,7 +495,9 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
             _detailRow('Service', request.serviceTypeLabel),
             _detailRow('Description', request.description),
             _detailRow(
-                'Mechanic', request.providerName ?? 'No mechanic assigned'),
+              'Mechanic',
+              request.providerName ?? 'No mechanic assigned',
+            ),
             _detailRow('Location', request.location),
             _detailRow('Status', request.status),
             if (request.amount != null)
@@ -496,16 +518,21 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF64748B))),
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF64748B),
+            ),
+          ),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.end,
               style: const TextStyle(
-                  color: Color(0xFF1E293B), fontWeight: FontWeight.w500),
+                color: Color(0xFF1E293B),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

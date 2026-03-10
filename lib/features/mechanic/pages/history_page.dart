@@ -122,8 +122,18 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
 
   String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     String month = months[date.month - 1];
     String day = date.day.toString();
@@ -138,8 +148,10 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
   IconData _getServiceIcon(String serviceType) {
     final lower = serviceType.toLowerCase();
     if (lower.contains('tire')) return Icons.tire_repair;
-    if (lower.contains('battery') || lower.contains('jumpstart')) return Icons.bolt;
-    if (lower.contains('lock') || lower.contains('key')) return Icons.lock_outline;
+    if (lower.contains('battery') || lower.contains('jumpstart'))
+      return Icons.bolt;
+    if (lower.contains('lock') || lower.contains('key'))
+      return Icons.lock_outline;
     if (lower.contains('fuel')) return Icons.local_gas_station_outlined;
     if (lower.contains('tow')) return Icons.car_repair;
     return Icons.settings_outlined;
@@ -156,7 +168,10 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
           children: [
             // Custom App Bar Area
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 16.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -175,26 +190,26 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
                       color: Color(0xFFDFEAF4),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.person,
-                      color: Color(0xFF5A789A),
-                    ),
+                    child: const Icon(Icons.person, color: Color(0xFF5A789A)),
                   ),
                 ],
               ),
             ),
-            
+
             // Status filter tabs
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 12.0,
+              ),
               child: Row(
                 children: [
-                  Expanded(child: _buildStatusTab('COMPLETED', 'Completed')),
+                  Expanded(child: _buildStatusTab('PAID', 'Completed')),
                   Expanded(child: _buildStatusTab('CANCELLED', 'Cancelled')),
                 ],
               ),
             ),
-            
+
             // Jobs list
             Expanded(
               child: _isLoading && _jobs.isEmpty
@@ -210,8 +225,12 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
                       onRefresh: _refreshHistory,
                       child: ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                        itemCount: _jobs.length + (_currentPage < _totalPages ? 1 : 0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
+                        itemCount:
+                            _jobs.length + (_currentPage < _totalPages ? 1 : 0),
                         itemBuilder: (context, index) {
                           // Show loading indicator at bottom when loading more
                           if (index == _jobs.length) {
@@ -262,7 +281,9 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
         child: Text(
           displayLabel,
           style: TextStyle(
-            color: isSelected ? const Color(0xFF101828) : const Color(0xFF64748B),
+            color: isSelected
+                ? const Color(0xFF101828)
+                : const Color(0xFF64748B),
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             fontSize: 15,
           ),
@@ -312,14 +333,14 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
               ),
             ),
             const SizedBox(width: 16),
-            
+
             // Middle Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    job.driverName,
+                    job.driverName ?? "",
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -337,7 +358,10 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
                   ),
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFDFEAF4),
                       borderRadius: BorderRadius.circular(8),
@@ -368,7 +392,7 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
                 ],
               ),
             ),
-            
+
             // Trailing price and status
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -388,7 +412,9 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
                   decoration: BoxDecoration(
                     color: job.status.toLowerCase() == 'completed'
                         ? const Color(0xFF22C55E)
-                        : (job.status.toLowerCase() == 'cancelled' ? const Color(0xFFEF4444) : const Color(0xFFF59E0B)),
+                        : (job.status.toLowerCase() == 'cancelled'
+                              ? const Color(0xFFEF4444)
+                              : const Color(0xFFF59E0B)),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -419,9 +445,9 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
               children: [
                 Text(
                   'Job Details',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -430,7 +456,7 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
               ],
             ),
             const SizedBox(height: 16),
-            _detailRow('Driver', job.driverName),
+            _detailRow('Driver', job.driverName ?? ""),
             _detailRow('Phone', job.driverPhone),
             _detailRow('Service', job.description),
             _detailRow('Location', job.location),
@@ -452,12 +478,21 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF64748B))),
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF64748B),
+            ),
+          ),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                color: Color(0xFF1E293B),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

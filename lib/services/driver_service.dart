@@ -281,7 +281,6 @@ class DriverService {
   }
 
   /// Get paginated driver request history with filters
-  ///
   /// Calls GET /requests/history with page, limit, and optional status filter.
   /// Used for the full history page with infinite scroll and COMPLETED/CANCELLED tabs.
   static Future<DriverRequestHistoryPaginated> getRequestHistoryPaginated({

@@ -134,7 +134,7 @@ class MechanicService {
   static Future<List<RecentJob>> getRequestHistory({int limit = 5}) async {
     try {
       final response = await ApiClient.get(
-        '/providers/me/request-history?page=1&limit=$limit&status=COMPLETED',
+        '/providers/me/request-history?page=1&limit=$limit&status=PAID',
         requiresAuth: true,
       );
 
@@ -162,7 +162,7 @@ class MechanicService {
   static Future<RequestHistoryPaginated> getRequestHistoryPaginated({
     int page = 1,
     int limit = 10,
-    String status = 'COMPLETED', // ASSIGNED, COMPLETED, or null for all
+    String status = 'PAID', // ASSIGNED, PAID, or null for all
   }) async {
     try {
       String url = '/providers/me/request-history?page=$page&limit=$limit';
@@ -609,7 +609,7 @@ class DashboardJob {
   final String driverPhone;
   final String description;
   final String location;
-  final String status; // COMPLETED, ASSIGNED, etc.
+  final String status; // PAID, ASSIGNED, etc.
   final int amount;
   final DateTime assignedAt;
   final DateTime? completedAt;
@@ -687,7 +687,7 @@ class RequestHistoryPaginated {
 class HistoryJob {
   final String id;
   final String driverId;
-  final String driverName;
+  final String? driverName;
   final String driverPhone;
   final String description;
   final String location;
@@ -703,7 +703,7 @@ class HistoryJob {
   HistoryJob({
     required this.id,
     required this.driverId,
-    required this.driverName,
+    this.driverName,
     required this.driverPhone,
     required this.description,
     required this.location,
@@ -722,7 +722,7 @@ class HistoryJob {
     return RecentJob(
       id: id,
       customerId: driverId,
-      customerName: driverName,
+      customerName: driverName ?? "",
       serviceType: description,
       amount: amount,
       status: status,
@@ -735,7 +735,7 @@ class HistoryJob {
     return HistoryJob(
       id: json['id'] as String,
       driverId: json['driverId'] as String,
-      driverName: json['driverName'] as String,
+      driverName: json['driverName'] as String?,
       driverPhone: json['driverPhone'] as String,
       description: json['description'] as String,
       location: json['location'] as String,
