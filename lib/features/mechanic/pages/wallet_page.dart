@@ -206,19 +206,18 @@ class _MechanicWalletPageState extends State<MechanicWalletPage> {
             const SizedBox(height: 32),
 
             // Action Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildActionButton(Icons.account_balance, 'Bank\nDetails'),
-                _buildActionButton(Icons.history, 'Payout\nHistory'),
-                _buildActionButton(
-                  Icons.insert_chart_outlined,
-                  'Earnings\nReport',
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 32),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //   children: [
+            //     _buildActionButton(Icons.account_balance, 'Bank\nDetails'),
+            //     _buildActionButton(Icons.history, 'Payout\nHistory'),
+            //     _buildActionButton(
+            //       Icons.insert_chart_outlined,
+            //       'Earnings\nReport',
+            //     ),
+            //   ],
+            // ),
+            // const SizedBox(height: 32),
 
             // Recent Transactions Header
             Row(
@@ -232,22 +231,22 @@ class _MechanicWalletPageState extends State<MechanicWalletPage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: const Size(50, 30),
-                    alignment: Alignment.centerRight,
-                  ),
-                  child: const Text(
-                    'See All',
-                    style: TextStyle(
-                      color: Color(0xFF14A8C4),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+                // TextButton(
+                //   onPressed: () {},
+                //   style: TextButton.styleFrom(
+                //     padding: EdgeInsets.zero,
+                //     minimumSize: const Size(50, 30),
+                //     alignment: Alignment.centerRight,
+                //   ),
+                //   child: const Text(
+                //     'See All',
+                //     style: TextStyle(
+                //       color: Color(0xFF14A8C4),
+                //       fontSize: 14,
+                //       fontWeight: FontWeight.w500,
+                //     ),
+                //   ),
+                // ),
               ],
             ),
             const SizedBox(height: 16),

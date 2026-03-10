@@ -5,6 +5,7 @@ import 'package:road_rescue/services/request_state_manager.dart';
 import 'package:road_rescue/services/driver_service.dart';
 import 'package:road_rescue/features/driver/pages/searching_mechanic_page.dart'; // Ensure correct path
 import 'package:road_rescue/features/driver/pages/tracking_view.dart';
+import 'package:road_rescue/features/driver/widgets/driver_tracking_view.dart';
 import 'package:road_rescue/features/driver/pages/quotation_view.dart';
 import 'package:road_rescue/features/driver/pages/payment_view.dart';
 import 'package:road_rescue/features/driver/pages/no_provider_view.dart';
@@ -109,11 +110,8 @@ class _ActiveRequestPageState extends State<ActiveRequestPage> {
         // Use the existing searching mechanic widget/page or similar
         return _buildPendingUi();
       case RequestStatus.ACCEPTED:
-        return TrackingView(
+        return DriverTrackingView(
           request: request,
-          mechanicLocation: _stateManager.mechanicLocation,
-          statusText: 'Mechanic is on the way',
-          onMapCreated: (controller) => _mapController = controller,
           onCancel: _handleCancelRequest,
         );
       case RequestStatus.ARRIVED:
