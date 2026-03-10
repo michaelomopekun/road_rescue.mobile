@@ -1,24 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
 import 'package:road_rescue/services/toast_service.dart';
-
-class Transaction {
-  final String id;
-  final String title;
-  final String subtitle;
-  final double amount;
-  final bool isCredit;
-  final IconData icon;
-
-  Transaction({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.amount,
-    required this.isCredit,
-    required this.icon,
-  });
-}
+import 'package:road_rescue/services/wallet_service.dart';
+import 'package:road_rescue/models/wallet.dart';
+import 'package:road_rescue/models/wallet_transaction.dart';
+import 'package:intl/intl.dart';
 
 class MechanicWalletPage extends StatefulWidget {
   const MechanicWalletPage({super.key});
@@ -30,43 +16,91 @@ class MechanicWalletPage extends StatefulWidget {
 class _MechanicWalletPageState extends State<MechanicWalletPage> {
   int _selectedNavIndex = 1;
 
-  // Mock transactions based on the design
-  final List<Transaction> _mockTransactions = [
-    Transaction(
-      id: '1',
-      title: 'Job Payout - Sarah Jenkins',
-      subtitle: 'Today, 2:30 PM',
-      amount: 85.00,
-      isCredit: true,
-      icon: Icons.handyman,
-    ),
-    Transaction(
-      id: '2',
-      title: 'Withdrawal to Chase Bank',
-      subtitle: 'Yesterday',
-      amount: 250.00,
-      isCredit: false,
-      icon: Icons.arrow_outward,
-    ),
-    Transaction(
-      id: '3',
-      title: 'Job Payout - Ford F150',
-      subtitle: 'Oct 24, 2023',
-      amount: 120.00,
-      isCredit: true,
-      icon: Icons.handyman,
-    ),
-    Transaction(
-      id: '4',
-      title: 'Job Payout - Battery Fix',
-      subtitle: 'Oct 22, 2023',
-      amount: 45.00,
-      isCredit: true,
-      icon: Icons.handyman,
-    ),
-  ];
+  Wallet? _wallet;
+  List<WalletTransaction> _transactions = [];
+  bool _isLoading = true;
+  bool _isLoadingMore = false;
+  int _currentPage = 1;
+  int _totalPages = 1;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWalletData();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      _loadMoreTransactions();
+    }
+  }
+
+  Future<void> _fetchWalletData() async {
+    setState(() {
+      _isLoading = true;
+      _currentPage = 1;
+      _transactions = [];
+    });
+
+    try {
+      final wallet = await WalletService.getBalance();
+      final txData = await WalletService.getTransactions(page: 1, limit: 10);
+
+      if (mounted) {
+        setState(() {
+          _wallet = wallet;
+          _transactions = txData.transactions;
+          _totalPages = (txData.total / txData.limit).ceil();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ToastService.showError(context, e.toString());
+      }
+    }
+  }
+
+  Future<void> _loadMoreTransactions() async {
+    if (_isLoadingMore || _currentPage >= _totalPages) return;
+
+    setState(() => _isLoadingMore = true);
+
+    try {
+      final nextPage = _currentPage + 1;
+      final txData = await WalletService.getTransactions(
+        page: nextPage,
+        limit: 10,
+      );
+
+      if (mounted) {
+        setState(() {
+          _transactions.addAll(txData.transactions);
+          _currentPage = nextPage;
+          _isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingMore = false);
+        ToastService.showError(context, 'Failed to load more transactions');
+      }
+    }
+  }
 
   void _handleNavigation(int index) {
+    if (index == _selectedNavIndex) return;
     setState(() {
       _selectedNavIndex = index;
     });
@@ -121,143 +155,155 @@ class _MechanicWalletPageState extends State<MechanicWalletPage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Balance Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF2B4C59), // dark teal
-                    Color(0xFF86B8D1), // light blue
+      body: RefreshIndicator(
+        onRefresh: _fetchWalletData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Balance Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF2B4C59), // dark teal
+                      Color(0xFF86B8D1), // light blue
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF2B4C59).withValues(alpha: 0.2),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
+                    ),
                   ],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF2B4C59).withValues(alpha: 0.2),
-                    blurRadius: 16,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Available Balance',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            '\$${_wallet?.balance.toStringAsFixed(2) ?? "0.00"}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        // Add modal or page navigation for Withdraw/TopUp
+                        onPressed: () {
+                          ToastService.showWarning(
+                            context,
+                            'Withdraw funds feature coming soon',
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.payments_outlined,
+                          color: Color(0xFF2B4C59),
+                        ),
+                        label: const Text(
+                          'Withdraw Funds',
+                          style: TextStyle(
+                            color: Color(0xFF2B4C59),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 32),
+
+              // Recent Transactions Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Available Balance',
+                    'Recent Transactions',
                     style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '\$842.50',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 36,
+                      color: textColor,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        ToastService.showWarning(
-                          context,
-                          'Withdraw funds feature coming soon',
-                        );
-                      },
-                      icon: const Icon(
-                        Icons.payments_outlined,
-                        color: Color(0xFF2B4C59),
-                      ),
-                      label: const Text(
-                        'Withdraw Funds',
-                        style: TextStyle(
-                          color: Color(0xFF2B4C59),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 32),
+              const SizedBox(height: 16),
 
-            // Action Buttons
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            //   children: [
-            //     _buildActionButton(Icons.account_balance, 'Bank\nDetails'),
-            //     _buildActionButton(Icons.history, 'Payout\nHistory'),
-            //     _buildActionButton(
-            //       Icons.insert_chart_outlined,
-            //       'Earnings\nReport',
-            //     ),
-            //   ],
-            // ),
-            // const SizedBox(height: 32),
-
-            // Recent Transactions Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Recent Transactions',
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              // Transactions List
+              if (_isLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: CircularProgressIndicator(),
                   ),
+                )
+              else if (_transactions.isEmpty)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(40.0),
+                    child: Text(
+                      'No transactions yet.',
+                      style: TextStyle(color: subTextColor, fontSize: 16),
+                    ),
+                  ),
+                )
+              else ...[
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _transactions.length,
+                  itemBuilder: (context, index) {
+                    return _buildTransactionCard(
+                      _transactions[index],
+                      textColor,
+                      subTextColor,
+                    );
+                  },
                 ),
-                // TextButton(
-                //   onPressed: () {},
-                //   style: TextButton.styleFrom(
-                //     padding: EdgeInsets.zero,
-                //     minimumSize: const Size(50, 30),
-                //     alignment: Alignment.centerRight,
-                //   ),
-                //   child: const Text(
-                //     'See All',
-                //     style: TextStyle(
-                //       color: Color(0xFF14A8C4),
-                //       fontSize: 14,
-                //       fontWeight: FontWeight.w500,
-                //     ),
-                //   ),
-                // ),
+                if (_isLoadingMore)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
               ],
-            ),
-            const SizedBox(height: 16),
 
-            // Transactions List
-            ..._mockTransactions.map(
-              (tx) => _buildTransactionCard(tx, textColor, subTextColor),
-            ),
-
-            const SizedBox(height: 24),
-          ],
+              // Bottom padding
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: DashboardBottomNavBar(
@@ -267,46 +313,12 @@ class _MechanicWalletPageState extends State<MechanicWalletPage> {
     );
   }
 
-  Widget _buildActionButton(IconData icon, String label) {
-    return Column(
-      children: [
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Icon(icon, color: const Color(0xFF2B4C59), size: 28),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF5A6B7C),
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            height: 1.3,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildTransactionCard(
-    Transaction tx,
+    WalletTransaction tx,
     Color textColor,
     Color subTextColor,
   ) {
-    final bool isCredit = tx.isCredit;
+    final bool isCredit = tx.type == 'CREDIT';
     final Color iconBgColor = isCredit
         ? const Color(0xFFEDF7F1)
         : const Color(0xFFF2F4F7);
@@ -314,6 +326,16 @@ class _MechanicWalletPageState extends State<MechanicWalletPage> {
         ? const Color(0xFF2EB774)
         : const Color(0xFF7A8B99);
     final Color amountColor = isCredit ? const Color(0xFF2EB774) : Colors.black;
+
+    // Choose appropriate icon based on source
+    IconData icon = Icons.receipt_long;
+    if (tx.source == 'TOP_UP') {
+      icon = Icons.account_balance_wallet;
+    } else if (tx.source == 'PAYMENT') {
+      icon = Icons.handyman;
+    }
+
+    final String dateStr = DateFormat('MMM d, y, h:mm a').format(tx.createdAt);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -338,7 +360,7 @@ class _MechanicWalletPageState extends State<MechanicWalletPage> {
               color: iconBgColor,
               shape: BoxShape.circle,
             ),
-            child: Icon(tx.icon, color: iconColor, size: 22),
+            child: Icon(icon, color: iconColor, size: 22),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -346,16 +368,18 @@ class _MechanicWalletPageState extends State<MechanicWalletPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  tx.title,
+                  tx.description.isNotEmpty ? tx.description : 'Transaction',
                   style: TextStyle(
                     color: textColor,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  tx.subtitle,
+                  dateStr,
                   style: TextStyle(color: subTextColor, fontSize: 13),
                 ),
               ],
