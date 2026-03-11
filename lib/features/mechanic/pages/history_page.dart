@@ -268,6 +268,7 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
             ? BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.secondaryBorder, width: 1),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),
@@ -301,12 +302,9 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color.fromARGB(255, 255, 255, 255),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFE2E8F0).withValues(alpha: 0.6),
-            width: 1,
-          ),
+          border: Border.all(color: AppColors.secondaryBorder, width: 2),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.02),

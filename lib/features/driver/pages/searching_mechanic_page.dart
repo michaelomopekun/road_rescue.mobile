@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 import 'package:road_rescue/services/driver_service.dart';
 import 'package:road_rescue/services/location_service.dart';
-import 'package:road_rescue/services/token_service.dart';
 import 'dart:math' as math;
 import 'package:geocoding/geocoding.dart';
 import 'package:road_rescue/services/request_state_manager.dart';
 import 'package:road_rescue/models/service_request.dart';
 import 'package:road_rescue/models/request_status.dart';
 import 'package:road_rescue/features/driver/pages/active_request_page.dart';
+import 'package:road_rescue/features/driver/pages/nearby_mechanics_map_page.dart';
 
 class SearchingMechanicPage extends StatefulWidget {
   final String issueType;
@@ -51,9 +51,9 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage>
           rm.status.name != 'PAID' &&
           rm.status.name != 'CANCELLED' &&
           rm.status.name != 'NO_PROVIDER_FOUND') {
-        print(
-          '[SearchingMechanicPage] Active request found. Short-circuiting and redirecting.',
-        );
+        // print(
+        //   '[SearchingMechanicPage] Active request found. Short-circuiting and redirecting.',
+        // );
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const ActiveRequestPage()),
@@ -105,7 +105,7 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage>
           locationAddress = parts.join(', ');
         }
       } catch (e) {
-        print('[SearchingMechanicPage] Reverse geocoding failed: $e');
+        // print('[SearchingMechanicPage] Reverse geocoding failed: $e');
         // Continue with fallback address
       }
 
@@ -139,11 +139,18 @@ class _SearchingMechanicPageState extends State<SearchingMechanicPage>
 
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const ActiveRequestPage()),
+          MaterialPageRoute(
+            builder: (context) => NearbyMechanicsMapPage(
+              issueType: widget.issueType,
+              requestId: response.id,
+              driverLatitude: locationData.latitude,
+              driverLongitude: locationData.longitude,
+              nearbyProviders: response.nearbyProviders,
+            ),
+          ),
         );
       }
     } catch (e) {
-      print('[SearchingMechanicPage] Error creating request: $e');
       if (mounted) {
         final isNoProvider =
             e.toString().contains('No nearby providers') ||

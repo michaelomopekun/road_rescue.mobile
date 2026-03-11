@@ -23,10 +23,14 @@ class NoProviderView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.sentiment_dissatisfied, size: 80, color: Colors.orange),
+              const Icon(
+                Icons.sentiment_dissatisfied,
+                size: 80,
+                color: Colors.orange,
+              ),
               const SizedBox(height: 16),
               const Text(
-                'We couldn\'t find any available mechanics nearby. Please try again or return to dashboard.',
+                'Nearby mechanics are not available. Please try again or return to dashboard.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 18),
               ),
@@ -53,7 +57,7 @@ class NoProviderView extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),
