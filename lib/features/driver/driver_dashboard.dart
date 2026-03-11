@@ -6,6 +6,8 @@ import 'package:road_rescue/features/driver/widgets/quick_action_button.dart';
 import 'package:road_rescue/features/driver/widgets/recent_activity_card.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
 import 'package:road_rescue/features/driver/pages/searching_mechanic_page.dart';
+import 'package:road_rescue/models/request_status.dart';
+import 'package:road_rescue/services/request_state_manager.dart';
 
 class DriverDashboard extends StatefulWidget {
   const DriverDashboard({super.key});
@@ -25,6 +27,19 @@ class _DriverDashboardState extends State<DriverDashboard> {
     super.initState();
     _loadDriverInfo();
     _loadRecentActivity();
+    RequestStateManager().addListener(_onRequestStateChanged);
+  }
+
+  @override
+  void dispose() {
+    RequestStateManager().removeListener(_onRequestStateChanged);
+    super.dispose();
+  }
+
+  void _onRequestStateChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _loadDriverInfo() async {
@@ -119,8 +134,18 @@ class _DriverDashboardState extends State<DriverDashboard> {
   String _formatDate(DateTime date) {
     const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     String weekday = weekdays[date.weekday - 1];
     String day = date.day.toString().padLeft(2, '0');
@@ -394,6 +419,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
               const SizedBox(height: 32),
 
+              _buildActiveRequestSection(),
+
               // Recent Activity
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -408,7 +435,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pushReplacementNamed('/driver/history');
+                      Navigator.of(
+                        context,
+                      ).pushReplacementNamed('/driver/history');
                     },
                     child: const Text(
                       'View History',
@@ -447,18 +476,11 @@ class _DriverDashboardState extends State<DriverDashboard> {
         child: Center(
           child: Column(
             children: [
-              Icon(
-                Icons.history,
-                size: 40,
-                color: Colors.grey[400],
-              ),
+              Icon(Icons.history, size: 40, color: Colors.grey[400]),
               const SizedBox(height: 8),
               Text(
                 'No recent activity yet',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
               ),
             ],
           ),
@@ -492,6 +514,229 @@ class _DriverDashboardState extends State<DriverDashboard> {
         );
       }).toList(),
     );
+  }
+
+  Widget _buildActiveRequestSection() {
+    final activeRequest = RequestStateManager().activeRequest;
+
+    if (activeRequest == null ||
+        activeRequest.status == RequestStatus.NO_PROVIDER_FOUND ||
+        activeRequest.status == RequestStatus.CANCELLED ||
+        activeRequest.status == RequestStatus.PAID) {
+      return const SizedBox.shrink();
+    }
+
+    // Determine the text to display for provider
+    String providerDisplay = 'Searching...';
+    if (activeRequest.providerName != null &&
+        activeRequest.providerName!.isNotEmpty &&
+        activeRequest.providerName != 'Unknown Driver') {
+      providerDisplay = activeRequest.providerName!;
+    } else if (activeRequest.status == RequestStatus.ACCEPTED ||
+        activeRequest.status == RequestStatus.ARRIVED ||
+        activeRequest.status == RequestStatus.IN_PROGRESS ||
+        activeRequest.status == RequestStatus.COMPLETED) {
+      providerDisplay = 'Mechanic';
+    }
+
+    final statusColor = _statusColor(activeRequest.status);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Active Request',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).pushNamed('/driver/active-request');
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: statusColor, width: 1.5),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _statusLabel(activeRequest.status),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: statusColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  activeRequest.description.isNotEmpty
+                      ? activeRequest.description
+                      : 'Service request',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        activeRequest.location.isNotEmpty
+                            ? activeRequest.location
+                            : 'Current Location',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.person_outline,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      providerDisplay,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    if (activeRequest.distanceKm != null) ...[
+                      const SizedBox(width: 12),
+                      const Icon(
+                        Icons.straighten,
+                        size: 16,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${activeRequest.distanceKm!.toStringAsFixed(1)} km',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Center(
+                  child: Text(
+                    'Tap to view details',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 32),
+      ],
+    );
+  }
+
+  Color _statusColor(RequestStatus status) {
+    switch (status) {
+      case RequestStatus.PENDING:
+        return Colors.orange;
+      case RequestStatus.ACCEPTED:
+        return AppColors.primary;
+      case RequestStatus.ARRIVED:
+        return Colors.teal;
+      case RequestStatus.QUOTED:
+        return Colors.purple;
+      case RequestStatus.IN_PROGRESS:
+        return Colors.deepOrange;
+      case RequestStatus.COMPLETED:
+        return Colors.green;
+      default:
+        return AppColors.primary;
+    }
+  }
+
+  String _statusLabel(RequestStatus status) {
+    switch (status) {
+      case RequestStatus.PENDING:
+        return 'Searching Mechanics';
+      case RequestStatus.ACCEPTED:
+        return 'Mechanic on the way';
+      case RequestStatus.ARRIVED:
+        return 'Mechanic Arrived';
+      case RequestStatus.QUOTED:
+        return 'Quoted — Action required';
+      case RequestStatus.IN_PROGRESS:
+        return 'In Progress';
+      case RequestStatus.COMPLETED:
+        return 'Completed — Make payment';
+      default:
+        return 'Active';
+    }
   }
 
   Widget _buildActivityShimmer() {
