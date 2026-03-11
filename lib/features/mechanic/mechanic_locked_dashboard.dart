@@ -9,6 +9,7 @@ import 'package:road_rescue/features/mechanic/verification/business_info_screen.
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/mechanic_service.dart';
 import 'package:road_rescue/services/auth_service.dart';
+import 'package:road_rescue/services/toast_service.dart';
 
 class MechanicLockedDashboard extends StatefulWidget {
   final String email;
@@ -67,6 +68,24 @@ class _MechanicLockedDashboardState extends State<MechanicLockedDashboard> {
               'verifiedAt': providerStatus.verifiedAt?.toIso8601String(),
             });
           });
+
+          // If verified, update cached status and auto-navigate after 5 seconds
+          if (providerStatus.verificationStatus.toUpperCase() == 'APPROVED') {
+            await TokenService.saveVerificationStatus('APPROVED');
+
+            if (!_disposed && mounted) {
+              ToastService.showSuccess(
+                context,
+                'Your account has been verified! Redirecting...',
+              );
+
+              Future.delayed(const Duration(seconds: 5), () {
+                if (!_disposed && mounted) {
+                  Navigator.of(context).pushReplacementNamed('/mechanic');
+                }
+              });
+            }
+          }
         }
       }
     } catch (e) {

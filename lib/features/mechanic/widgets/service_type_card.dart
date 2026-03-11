@@ -39,11 +39,11 @@ class ServiceTypeCard extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   shape: BoxShape.rectangle,
-                  color: Colors.blue[50],
+                  color: const Color.fromARGB(255, 255, 255, 255),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: SvgPicture.asset(
-                  'assets/icons/spanner_tool.svg',
+                  'assets/svg/spanner_tool.svg',
                   width: 21.25,
                   height: 21.25,
                 ),

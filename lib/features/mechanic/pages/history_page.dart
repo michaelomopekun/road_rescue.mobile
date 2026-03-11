@@ -204,7 +204,7 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
               ),
               child: Row(
                 children: [
-                  Expanded(child: _buildStatusTab('PAID', 'Completed')),
+                  Expanded(child: _buildStatusTab('PAID', 'Paid')),
                   Expanded(child: _buildStatusTab('CANCELLED', 'Cancelled')),
                 ],
               ),
@@ -464,7 +464,7 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
             _detailRow('Amount', '\$${job.amount.toStringAsFixed(2)}'),
             _detailRow('Assigned', _formatDate(job.assignedAt)),
             if (job.completedAt != null)
-              _detailRow('Completed', _formatDate(job.completedAt!)),
+              _detailRow('Paid', _formatDate(job.completedAt!)),
           ],
         ),
       ),
