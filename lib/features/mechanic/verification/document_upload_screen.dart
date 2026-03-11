@@ -153,7 +153,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
       }
     } on ValidationException catch (e) {
       if (mounted) {
-        ToastService.showError(context, 'Validation Error: ${e.toString()}');
+        ToastService.showError(context, 'Validation Error: ${e.messages}');
       }
     } catch (e) {
       if (mounted) {

@@ -102,9 +102,16 @@ class TokenService {
     return userData?['email'] as String?;
   }
 
-  /// Clear token and user data (logout)
+  /// Clear token and user data (session expired)
+  /// NOTE: This preserves provider ID and verification status.
+  /// Use clearAuthData() for full logout.
   static Future<void> clearToken() async {
-    await clearAuthData();
+    final prefs = await SharedPreferences.getInstance();
+    await Future.wait([
+      prefs.remove(_tokenKey),
+      prefs.remove(_userKey),
+      prefs.remove(_expiryKey),
+    ]);
   }
 
   /// Refresh token validity (extend session)

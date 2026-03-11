@@ -440,7 +440,7 @@ class RecentJob {
       customerName: json['customerName'] as String,
       serviceType: json['serviceType'] as String,
       amount: (json['amount'] as num).toDouble(),
-      status: json['status'] as String? ?? 'Completed',
+      status: json['status'] as String? ?? 'Paid',
       completedAt: DateTime.parse(json['completedAt'] as String),
       avatarUrl: json['avatarUrl'] as String?,
     );
@@ -495,16 +495,16 @@ class DashboardResponse {
   factory DashboardResponse.fromJson(Map<String, dynamic> json) {
     return DashboardResponse(
       profile: DashboardProfile.fromJson(
-        json['profile'] as Map<String, dynamic>,
+        (json['profile'] as Map<String, dynamic>?) ?? {},
       ),
       verificationStatus: DashboardVerificationStatus.fromJson(
-        json['verificationStatus'] as Map<String, dynamic>,
+        (json['verificationStatus'] as Map<String, dynamic>?) ?? {},
       ),
       availabilityStatus: DashboardAvailabilityStatus.fromJson(
-        json['availabilityStatus'] as Map<String, dynamic>,
+        (json['availabilityStatus'] as Map<String, dynamic>?) ?? {},
       ),
       earnings: DashboardEarnings.fromJson(
-        json['earnings'] as Map<String, dynamic>,
+        (json['earnings'] as Map<String, dynamic>?) ?? {},
       ),
       recentJobs:
           (json['recentJobs'] as List<dynamic>?)
@@ -535,12 +535,12 @@ class DashboardProfile {
 
   factory DashboardProfile.fromJson(Map<String, dynamic> json) {
     return DashboardProfile(
-      id: json['id'] as String,
-      userId: json['userId'] as String,
-      businessName: json['businessName'] as String,
-      businessPhone: json['businessPhone'] as String,
-      businessAddress: json['businessAddress'] as String,
-      providerType: json['providerType'] as String,
+      id: json['id'] as String? ?? '',
+      userId: json['userId'] as String? ?? '',
+      businessName: json['businessName'] as String? ?? '',
+      businessPhone: json['businessPhone'] as String? ?? '',
+      businessAddress: json['businessAddress'] as String? ?? '',
+      providerType: json['providerType'] as String? ?? 'INDIVIDUAL',
     );
   }
 }
@@ -554,7 +554,7 @@ class DashboardVerificationStatus {
 
   factory DashboardVerificationStatus.fromJson(Map<String, dynamic> json) {
     return DashboardVerificationStatus(
-      status: json['status'] as String,
+      status: json['status'] as String? ?? 'PENDING',
       verifiedAt: json['verifiedAt'] != null
           ? DateTime.parse(json['verifiedAt'] as String)
           : null,
@@ -571,8 +571,10 @@ class DashboardAvailabilityStatus {
 
   factory DashboardAvailabilityStatus.fromJson(Map<String, dynamic> json) {
     return DashboardAvailabilityStatus(
-      status: json['status'] as String,
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      status: json['status'] as String? ?? 'OFFLINE',
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : DateTime.now(),
     );
   }
 }
@@ -594,9 +596,11 @@ class DashboardEarnings {
   factory DashboardEarnings.fromJson(Map<String, dynamic> json) {
     return DashboardEarnings(
       monthlyEarnings: (json['monthlyEarnings'] as num?)?.toDouble() ?? 0.0,
-      currency: json['currency'] as String,
-      period: json['period'] as String,
-      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+      currency: json['currency'] as String? ?? 'NGN',
+      period: json['period'] as String? ?? '',
+      lastUpdated: json['lastUpdated'] != null
+          ? DateTime.parse(json['lastUpdated'] as String)
+          : DateTime.now(),
     );
   }
 }

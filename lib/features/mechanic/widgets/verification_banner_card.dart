@@ -92,7 +92,9 @@ class VerificationBannerCard extends StatelessWidget {
                 width: 119.75,
                 height: 91.27,
                 decoration: BoxDecoration(
-                  color: isVerified ? Colors.green[50] : Colors.white,
+                  color: isVerified
+                      ? Colors.green[50]
+                      : AppColors.lightSecondary,
                 ),
                 child: Transform.translate(
                   offset: const Offset(-20, -5),
@@ -103,7 +105,7 @@ class VerificationBannerCard extends StatelessWidget {
                           color: Colors.green[600],
                         )
                       : SvgPicture.asset(
-                          'assets/icons/verification_badge.svg',
+                          'assets/svg/verification_badge.svg',
                           width: 119.75,
                           height: 91.27,
                         ),

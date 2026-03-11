@@ -100,6 +100,13 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
         role: roleString,
       );
 
+      // Auto-login after registration to persist token and user data
+      // Without this, TokenService.getUserId() returns null in subsequent screens
+      await AuthService.login(
+        email: formData['email'] as String,
+        password: formData['password'] as String,
+      );
+
       if (!mounted) return;
 
       if (widget.role == UserRole.driver) {
