@@ -6,7 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 
 class ApiClient {
-  static String baseUrl =
+  static String get baseUrl =>
       // "http://10.194.220.3:3438";
       // "http://10.0.2.2:3438";
       // "localhost:3438";
@@ -38,6 +38,7 @@ class ApiClient {
     String endpoint, {
     bool requiresAuth = false,
   }) async {
+    print('GET $endpoint (requiresAuth: $requiresAuth)');
     final url = Uri.parse('$baseUrl$endpoint');
     final headers = await _getHeaders(requiresAuth);
 

@@ -4,6 +4,7 @@ import 'package:road_rescue/services/mechanic_service.dart';
 import 'package:road_rescue/services/fcm_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'package:road_rescue/services/auth_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -86,6 +87,9 @@ class _GlobalStateInitializerState extends State<GlobalStateInitializer> {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables from .env file
+  await dotenv.load(fileName: ".env");
 
   // Initialize Firebase and FCM
   try {
