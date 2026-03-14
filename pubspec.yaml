@@ -49,12 +49,11 @@ dependencies:
   url_launcher: ^6.2.1
   socket_io_client: ^3.1.4
   intl: ^0.20.2
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  flutter_dotenv: ^5.1.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -106,4 +105,5 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
   assets:
+    - .env
     - assets/svg/
