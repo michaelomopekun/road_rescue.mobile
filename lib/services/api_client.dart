@@ -7,9 +7,9 @@ import 'dart:convert';
 
 class ApiClient {
   static String get baseUrl =>
-      // "http://10.194.220.3:3438";
-      "http://10.0.2.2:3438";
-  // "localhost:3438";
+      // "http://10.194.220.3:3438"; // [IP_ADDRESS] for physical device
+      "http://10.0.2.2:3438"; // for emulator
+  // "localhost:3438"; // for web
   // dotenv.env['BASE_URL'] ?? '';
 
   // envProperties.getProperty("GOOGLE_MAPS_API_KEY", "")
