@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:road_rescue/features/auth/widgets/signup_steps/name_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/phone_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/otp_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/password_step_widget.dart';
-import 'package:road_rescue/features/mechanic/mechanic_locked_dashboard.dart';
 import 'package:road_rescue/services/auth_service.dart';
 import 'package:road_rescue/services/exceptions.dart';
 import 'package:road_rescue/services/toast_service.dart';
 import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
-enum SignupStep { phone, otp, password }
+enum SignupStep { name, phone, otp, password }
 
 enum UserRole { driver, mechanic }
 
@@ -36,7 +36,7 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
     _initializeSteps();
     formData = {
       'email': widget.email,
-      // 'fullName': '',
+      'fullName': '',
       'phoneNumber': '',
       'otp': '',
       // 'workshopName': '',
@@ -49,14 +49,14 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
     // Dynamic step configuration based on role
     if (widget.role == UserRole.driver) {
       steps = [
-        // SignupStep.name,
+        SignupStep.name,
         SignupStep.phone,
         SignupStep.otp,
         SignupStep.password,
       ];
     } else if (widget.role == UserRole.mechanic) {
       steps = [
-        // SignupStep.name,
+        SignupStep.name,
         SignupStep.phone,
         SignupStep.otp,
         // SignupStep.workshopInfo,
@@ -94,6 +94,7 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
 
       // Call register API
       await AuthService.register(
+        fullName: formData['fullName'] as String,
         email: formData['email'] as String,
         password: formData['password'] as String,
         phone: formData['phoneNumber'] as String,
@@ -101,7 +102,9 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       );
 
       // Auto-login after registration to persist token and user data
-      // Without this, TokenService.getUserId() returns null in subsequent screens
+      // login() also calls authNotifier.notifyAuthStateChanged() which updates
+      // main.dart's home widget, but since signup screens are pushed on top
+      // of the nav stack, we still need manual navigation to clear them.
       await AuthService.login(
         email: formData['email'] as String,
         password: formData['password'] as String,
@@ -109,19 +112,22 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
 
       if (!mounted) return;
 
+      // Show success toast before navigating
+      ToastService.showSuccess(context, 'Registration successful! Welcome aboard.');
+
       if (widget.role == UserRole.driver) {
-        // Navigate to Driver Dashboard
-        Navigator.pushReplacementNamed(context, '/driver-dashboard');
+        // Clear the entire nav stack and go to Driver Dashboard
+        Navigator.pushNamedAndRemoveUntil(context, '/driver', (route) => false);
       } else if (widget.role == UserRole.mechanic) {
-        // Navigate to Mechanic Locked Dashboard with signup data
-        Navigator.pushReplacement(
+        // Clear the entire nav stack and go to Mechanic Locked Dashboard
+        Navigator.pushNamedAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (_) => MechanicLockedDashboard(
-              email: formData['email'] as String,
-              phoneNumber: formData['phoneNumber'] as String,
-            ),
-          ),
+          '/mechanic-dashboard',
+          (route) => false,
+          arguments: {
+            'email': formData['email'] as String,
+            'phoneNumber': formData['phoneNumber'] as String,
+          },
         );
       }
     } on ValidationException catch (e) {
@@ -131,6 +137,7 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       if (!mounted) return;
       ToastService.showError(context, e.message);
     } catch (e) {
+      debugPrint('[SignupFlow] Registration error: $e');
       if (!mounted) return;
       ToastService.showError(context, 'Registration failed. Please try again.');
     }
@@ -185,6 +192,14 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
 
   Widget _buildStepContent(SignupStep step) {
     switch (step) {
+      case SignupStep.name:
+        return NameStepWidget(
+          onContinue: (fullName) {
+            _updateFormData('fullName', fullName);
+            _onContinue();
+          },
+        );
+
       case SignupStep.phone:
         return PhoneStepWidget(
           onContinue: (phoneNumber) {

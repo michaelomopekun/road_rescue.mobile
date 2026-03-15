@@ -4,14 +4,9 @@ import 'package:road_rescue/shared/widgets/primary_button.dart';
 import 'package:road_rescue/shared/utils/validators.dart';
 
 class NameStepWidget extends StatefulWidget {
-  final String email;
   final Function(String) onContinue;
 
-  const NameStepWidget({
-    super.key,
-    required this.email,
-    required this.onContinue,
-  });
+  const NameStepWidget({super.key, required this.onContinue});
 
   @override
   State<NameStepWidget> createState() => _NameStepWidgetState();

@@ -16,7 +16,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 class FcmService {
-  static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  static final FirebaseMessaging _firebaseMessaging =
+      FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
@@ -52,16 +53,24 @@ class FcmService {
 
       // If socket is connected, ignore FCM because socket is primary real-time channel
       if (SocketService().isConnected) {
-        print('[FcmService] Socket is connected, ignoring FCM message in foreground');
+        print(
+          '[FcmService] Socket is connected, ignoring FCM message in foreground',
+        );
         return;
       }
 
-      print('[FcmService] Socket disconnected, showing local notification fallback for FCM');
+      print(
+        '[FcmService] Socket disconnected, showing local notification fallback for FCM',
+      );
       if (message.notification != null) {
         _showLocalNotification(message);
       } else {
         // Fallback title/body if notification is empty
-        _showLocalNotification(message, fallbackTitle: 'Update', fallbackBody: 'Request status updated');
+        _showLocalNotification(
+          message,
+          fallbackTitle: 'Update',
+          fallbackBody: 'Request status updated',
+        );
       }
     });
 
@@ -108,15 +117,16 @@ class FcmService {
 
     final DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        );
 
-    final InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
+    final InitializationSettings initializationSettings =
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsIOS,
+        );
 
     await _localNotificationsPlugin.initialize(
       settings: initializationSettings,
@@ -132,15 +142,19 @@ class FcmService {
   /// Handle tapping on a local notification
   static void _handleNotificationTap(String payload) {
     try {
-      print('[FcmService] Local notification tapped. Reloading active request...');
+      print(
+        '[FcmService] Local notification tapped. Reloading active request...',
+      );
       RequestStateManager().loadActiveRequest(); // Fetch latest state
-      
+
       final context = navigatorKey.currentContext;
       if (context != null) {
         // Force navigation to dashboard which will handle routing to active request
         final type = jsonDecode(payload)['type'] as String?;
-        if (type == 'new_job' || type == 'job_update' || type == 'job_accepted') {
-           // Assume proper navigation will happen via state manager updates listening to activeRequest changes
+        if (type == 'new_job' ||
+            type == 'job_update' ||
+            type == 'job_accepted') {
+          // Assume proper navigation will happen via state manager updates listening to activeRequest changes
         }
       }
     } catch (e) {
@@ -148,7 +162,11 @@ class FcmService {
     }
   }
 
-  static Future<void> _showLocalNotification(RemoteMessage message, {String? fallbackTitle, String? fallbackBody}) async {
+  static Future<void> _showLocalNotification(
+    RemoteMessage message, {
+    String? fallbackTitle,
+    String? fallbackBody,
+  }) async {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
@@ -158,13 +176,14 @@ class FcmService {
     if (!kIsWeb) {
       const AndroidNotificationDetails androidPlatformChannelSpecifics =
           AndroidNotificationDetails(
-        'high_importance_channel', // id
-        'High Importance Notifications', // title
-        channelDescription: 'This channel is used for important notifications.',
-        importance: Importance.max,
-        priority: Priority.high,
-      );
-      
+            'high_importance_channel', // id
+            'High Importance Notifications', // title
+            channelDescription:
+                'This channel is used for important notifications.',
+            importance: Importance.max,
+            priority: Priority.high,
+          );
+
       const NotificationDetails platformChannelSpecifics = NotificationDetails(
         android: androidPlatformChannelSpecifics,
         iOS: DarwinNotificationDetails(
@@ -173,12 +192,14 @@ class FcmService {
           presentSound: true,
         ),
       );
-      
+
       // Serialize message data as payload so it's available on tap
       final payload = jsonEncode(message.data);
 
       await _localNotificationsPlugin.show(
-        id: (notification.hashCode == 0) ? DateTime.now().millisecondsSinceEpoch ~/ 1000 : notification.hashCode,
+        id: (notification.hashCode == 0)
+            ? DateTime.now().millisecondsSinceEpoch ~/ 1000
+            : notification.hashCode,
         title: title,
         body: body,
         notificationDetails: platformChannelSpecifics,
@@ -198,7 +219,7 @@ class FcmService {
       await ApiClient.post(
         '/auth/register-device',
         body: {
-          'deviceToken': token,
+          'fcmToken': token,
           // 'platform': platform,
         },
         requiresAuth: true,
@@ -210,7 +231,9 @@ class FcmService {
   }
 
   static void _handleNavigation(RemoteMessage message) {
-    print('[FcmService] Message opened from background, reloading active request...');
+    print(
+      '[FcmService] Message opened from background, reloading active request...',
+    );
     RequestStateManager().loadActiveRequest(); // Fetch latest state
   }
 

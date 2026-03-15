@@ -74,13 +74,19 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
           MaterialPageRoute(
             builder: (_) => PasswordScreen(email: email, role: role),
           ),
-        );
+        ).then((_) {
+          // Reset loading state when user navigates back to this screen
+          if (mounted) setState(() => _isLoading = false);
+        });
       } else {
         // New user → navigate to Role Selection
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => RoleSelectionScreen(email: email)),
-        );
+        ).then((_) {
+          // Reset loading state when user navigates back to this screen
+          if (mounted) setState(() => _isLoading = false);
+        });
       }
     } on ValidationException catch (e) {
       setState(() {

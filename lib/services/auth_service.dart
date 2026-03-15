@@ -12,11 +12,13 @@ class AuthService {
   /// Register a new user
   ///
   /// Parameters:
+  /// - fullName: User full name
   /// - email: User email address
   /// - password: User password (min 8 chars)
   /// - phone: User phone number
   /// - role: User role (DRIVER or PROVIDER)
   static Future<RegisterResponse> register({
+    required String fullName,
     required String email,
     required String password,
     required String phone,
@@ -26,6 +28,7 @@ class AuthService {
       final response = await ApiClient.post(
         '/auth/register',
         body: {
+          'fullName': fullName,
           'email': email,
           'password': password,
           'phone': phone,
@@ -147,7 +150,7 @@ class AuthService {
           // Register device for push notifications
           final fcmToken = await FirebaseMessaging.instance.getToken();
           await FcmService.registerDevice(fcmToken);
-        } catch(e) {
+        } catch (e) {
           print('Failed to register FCM during login: $e');
         }
 
