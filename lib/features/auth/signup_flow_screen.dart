@@ -3,13 +3,14 @@ import 'package:road_rescue/features/auth/widgets/signup_steps/name_step_widget.
 import 'package:road_rescue/features/auth/widgets/signup_steps/phone_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/otp_step_widget.dart';
 import 'package:road_rescue/features/auth/widgets/signup_steps/password_step_widget.dart';
+import 'package:road_rescue/features/auth/widgets/signup_steps/plate_number_step_widget.dart';
 import 'package:road_rescue/services/auth_service.dart';
 import 'package:road_rescue/services/exceptions.dart';
 import 'package:road_rescue/services/toast_service.dart';
 import 'package:road_rescue/shared/widgets/custom_back_button.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
-enum SignupStep { name, phone, otp, password }
+enum SignupStep { name, phone, otp, plateNumber, password }
 
 enum UserRole { driver, mechanic }
 
@@ -39,6 +40,7 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       'fullName': '',
       'phoneNumber': '',
       'otp': '',
+      'plateNumber': '',
       // 'workshopName': '',
       // 'workshopLocation': null,
       'password': '',
@@ -52,6 +54,7 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
         SignupStep.name,
         SignupStep.phone,
         SignupStep.otp,
+        SignupStep.plateNumber,
         SignupStep.password,
       ];
     } else if (widget.role == UserRole.mechanic) {
@@ -99,6 +102,9 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
         password: formData['password'] as String,
         phone: formData['phoneNumber'] as String,
         role: roleString,
+        plateNumber: widget.role == UserRole.driver
+            ? formData['plateNumber'] as String
+            : null,
       );
 
       // Auto-login after registration to persist token and user data
@@ -113,7 +119,10 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       if (!mounted) return;
 
       // Show success toast before navigating
-      ToastService.showSuccess(context, 'Registration successful! Welcome aboard.');
+      ToastService.showSuccess(
+        context,
+        'Registration successful! Welcome aboard.',
+      );
 
       if (widget.role == UserRole.driver) {
         // Clear the entire nav stack and go to Driver Dashboard
@@ -232,6 +241,14 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       //       _onContinue();
       //     },
       //   );
+
+      case SignupStep.plateNumber:
+        return PlateNumberStepWidget(
+          onContinue: (plate) {
+            _updateFormData('plateNumber', plate);
+            _onContinue();
+          },
+        );
 
       case SignupStep.password:
         return PasswordStepWidget(
