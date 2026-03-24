@@ -201,7 +201,7 @@ class _MechanicWalletPageState extends State<MechanicWalletPage> {
                     _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                            '\$${_wallet?.balance.toStringAsFixed(2) ?? "0.00"}',
+                            '₦${_wallet?.balance.toStringAsFixed(2) ?? "0.00"}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 36,
@@ -387,7 +387,7 @@ class _MechanicWalletPageState extends State<MechanicWalletPage> {
           ),
           const SizedBox(width: 8),
           Text(
-            '${isCredit ? '+' : '-'}\$${tx.amount.toStringAsFixed(2)}',
+            '${isCredit ? '+' : '-'}₦${tx.amount.toStringAsFixed(2)}',
             style: TextStyle(
               color: amountColor,
               fontSize: 16,

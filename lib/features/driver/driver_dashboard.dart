@@ -497,7 +497,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
           date: _formatDate(request.completedAt ?? request.createdAt),
           amount: isCancelled
               ? 'Cancelled'
-              : '\$${request.amount?.toStringAsFixed(2) ?? '0.00'}',
+              : '₦${request.amount?.toStringAsFixed(2) ?? '0.00'}',
           status: isCancelled ? 'Cancelled' : 'Completed',
           iconBackgroundColor: isCancelled
               ? const Color(0xFFF1F5F9)

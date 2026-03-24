@@ -396,7 +396,7 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '\$${job.amount.toStringAsFixed(2)}',
+                  '₦${job.amount.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -459,7 +459,7 @@ class _MechanicHistoryPageState extends State<MechanicHistoryPage> {
             _detailRow('Service', job.description),
             _detailRow('Location', job.location),
             _detailRow('Status', job.status),
-            _detailRow('Amount', '\$${job.amount.toStringAsFixed(2)}'),
+            _detailRow('Amount', '₦${job.amount.toStringAsFixed(2)}'),
             _detailRow('Assigned', _formatDate(job.assignedAt)),
             if (job.completedAt != null)
               _detailRow('Paid', _formatDate(job.completedAt!)),

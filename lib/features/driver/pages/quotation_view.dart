@@ -302,7 +302,7 @@ class _QuotationViewState extends State<QuotationView> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Qty: ${item.quantity} | Unit: \$${item.unitPrice.toStringAsFixed(2)}',
+                  'Qty: ${item.quantity} | Unit: ₦${item.unitPrice.toStringAsFixed(2)}',
                   style: const TextStyle(color: Colors.blueGrey, fontSize: 12),
                 ),
               ],
@@ -310,7 +310,7 @@ class _QuotationViewState extends State<QuotationView> {
           ),
           const SizedBox(width: 12),
           Text(
-            '\$${item.total.toStringAsFixed(2)}',
+            '₦${item.total.toStringAsFixed(2)}',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w900,
@@ -391,7 +391,7 @@ class _QuotationViewState extends State<QuotationView> {
                       ),
                     ),
                     Text(
-                      '\$${quote.totalAmount.toStringAsFixed(2)}',
+                      '₦${quote.totalAmount.toStringAsFixed(2)}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
@@ -417,7 +417,7 @@ class _QuotationViewState extends State<QuotationView> {
           style: const TextStyle(color: Colors.white70, fontSize: 13),
         ),
         Text(
-          '\$${amount.toStringAsFixed(2)}',
+          '₦${amount.toStringAsFixed(2)}',
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,

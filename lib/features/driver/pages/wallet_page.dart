@@ -146,7 +146,7 @@ class _DriverWalletPageState extends State<DriverWalletPage> {
                         decimal: true,
                       ),
                       decoration: InputDecoration(
-                        labelText: 'Amount (\$)',
+                        labelText: 'Amount (₦)',
                         prefixIcon: const Icon(Icons.attach_money),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -358,7 +358,7 @@ class _DriverWalletPageState extends State<DriverWalletPage> {
                                       color: Colors.white,
                                     )
                                   : Text(
-                                      '\$${_wallet?.balance.toStringAsFixed(2) ?? "0.00"}',
+                                      '₦${_wallet?.balance.toStringAsFixed(2) ?? "0.00"}',
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 36,
@@ -595,7 +595,7 @@ class _DriverWalletPageState extends State<DriverWalletPage> {
                                 : (isWalletTopUp ? 'Wallet Top Up' : 'Payment'),
                             subtitle: dateStr,
                             amount:
-                                '${isCredit ? '+' : '-'}\$${tx.amount.toStringAsFixed(2)}',
+                                '${isCredit ? '+' : '-'}₦${tx.amount.toStringAsFixed(2)}',
                             status: isCredit ? 'Success' : 'Wallet',
                             icon: icon,
                             isPositive: isCredit,

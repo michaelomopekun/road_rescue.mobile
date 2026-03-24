@@ -285,7 +285,7 @@ class _TrackingViewState extends State<TrackingView> {
                     Text(
                       _isLoadingQuotation
                           ? '...'
-                          : '\$${_quotationTotal?.totalAmount.toStringAsFixed(2) ?? widget.request.quotation?.totalAmount.toStringAsFixed(2) ?? "0.00"}',
+                          : '₦${_quotationTotal?.totalAmount.toStringAsFixed(2) ?? widget.request.quotation?.totalAmount.toStringAsFixed(2) ?? "0.00"}',
                       style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,

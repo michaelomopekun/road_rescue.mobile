@@ -23,6 +23,7 @@ class AuthService {
     required String password,
     required String phone,
     required String role,
+    String? plateNumber,
   }) async {
     try {
       final response = await ApiClient.post(
@@ -33,6 +34,7 @@ class AuthService {
           'password': password,
           'phone': phone,
           'role': role,
+          if (plateNumber != null) 'plateNumber': plateNumber,
         },
       );
 

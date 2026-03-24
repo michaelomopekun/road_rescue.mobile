@@ -445,7 +445,7 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
                 Text(
                   isCancelled
                       ? 'Cancelled'
-                      : '\$${request.amount?.toStringAsFixed(2) ?? '0.00'}',
+                      : '₦${request.amount?.toStringAsFixed(2) ?? '0.00'}',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -501,7 +501,7 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
             _detailRow('Location', request.location),
             _detailRow('Status', request.status),
             if (request.amount != null)
-              _detailRow('Amount', '\$${request.amount!.toStringAsFixed(2)}'),
+              _detailRow('Amount', '₦${request.amount!.toStringAsFixed(2)}'),
             _detailRow('Requested', _formatDate(request.createdAt)),
             if (request.completedAt != null)
               _detailRow('Completed', _formatDate(request.completedAt!)),

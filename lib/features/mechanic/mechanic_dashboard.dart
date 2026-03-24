@@ -408,7 +408,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
                   Expanded(
                     child: StatsCard(
                       icon: Icons.savings,
-                      value: '\$${_currentEarnings.toStringAsFixed(0)}',
+                      value: '₦${_currentEarnings.toStringAsFixed(0)}',
                       label: 'Earnings',
                       subtitle: 'This month',
                       onTap: () {
@@ -494,7 +494,7 @@ class _MechanicDashboardState extends State<MechanicDashboard> {
                             child: RequestListItem(
                               customerName: job.customerName,
                               serviceType: job.serviceType,
-                              amount: '\$${job.amount.toStringAsFixed(2)}',
+                              amount: '₦${job.amount.toStringAsFixed(2)}',
                               status: job.status,
                               avatarIcon: Icons.person,
                               onTap: () {

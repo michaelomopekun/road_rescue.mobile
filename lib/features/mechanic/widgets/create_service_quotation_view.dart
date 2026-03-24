@@ -413,7 +413,7 @@ class _CreateServiceQuotationViewState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'UNIT PRICE (\$)',
+                      'UNIT PRICE (₦)',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
@@ -661,7 +661,7 @@ class _CreateServiceQuotationViewState
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${item.quantity} ${item.unit} @ \$${item.unitPrice.toStringAsFixed(2)}',
+                              '${item.quantity} ${item.unit} @ ₦${item.unitPrice.toStringAsFixed(2)}',
                               style: const TextStyle(
                                 color: Colors.blueGrey,
                                 fontSize: 11,
@@ -671,7 +671,7 @@ class _CreateServiceQuotationViewState
                         ),
                       ),
                       Text(
-                        '\$${(item.quantity * item.unitPrice).toStringAsFixed(2)}',
+                        '₦${(item.quantity * item.unitPrice).toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
@@ -745,7 +745,7 @@ class _CreateServiceQuotationViewState
                 ),
               ),
               Text(
-                '\$${_grandTotal.toStringAsFixed(2)}',
+                '₦${_grandTotal.toStringAsFixed(2)}',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
@@ -768,7 +768,7 @@ class _CreateServiceQuotationViewState
           style: const TextStyle(color: Colors.white70, fontSize: 13),
         ),
         Text(
-          '\$${amount.toStringAsFixed(2)}',
+          '₦${amount.toStringAsFixed(2)}',
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
