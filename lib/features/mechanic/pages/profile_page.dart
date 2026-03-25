@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
+import 'package:road_rescue/features/mechanic/widgets/edit_workshop_bottom_sheet.dart';
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/toast_service.dart';
+import 'package:road_rescue/services/mechanic_service.dart';
+import 'package:road_rescue/services/auth_service.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
 class MechanicProfilePage extends StatefulWidget {
@@ -13,9 +16,9 @@ class MechanicProfilePage extends StatefulWidget {
 
 class _MechanicProfilePageState extends State<MechanicProfilePage> {
   int _selectedNavIndex = 4;
-  String? _mechanicName;
-  String? _mechanicEmail;
-  String? _mechanicPhone;
+  ProviderProfile? _providerProfile;
+  UserProfile? _userProfile;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -24,15 +27,157 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
   }
 
   Future<void> _loadProfileData() async {
-    final userData = await TokenService.getUserData();
-    final email = await TokenService.getUserEmail();
-
-    setState(() {
-      _mechanicName = userData?['name'] as String? ?? 'Michael Scott';
-      _mechanicEmail = email ?? 'michael.scott@example.com';
-      _mechanicPhone = userData?['phone'] as String? ?? '+1 555-123-4567';
-    });
+    setState(() => _isLoading = true);
+    try {
+      final futures = await Future.wait([
+        MechanicService.getProviderProfile(),
+        AuthService.getUserProfile(),
+      ]);
+      if (mounted) {
+        setState(() {
+          _providerProfile = futures[0] as ProviderProfile;
+          _userProfile = futures[1] as UserProfile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ToastService.showError(context, 'Failed to load profile');
+      }
+    }
   }
+
+
+  Future<void> _editProfile() async {
+    if (_providerProfile == null) return;
+    
+    final result = await showModalBottomSheet<Map<String, String>>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => EditWorkshopBottomSheet(
+        providerProfile: _providerProfile!,
+      ),
+    );
+    
+    if (result != null && mounted) {
+      setState(() => _isLoading = true);
+      try {
+        await MechanicService.updateProviderProfile(
+          businessName: result['businessName']!,
+          businessPhone: result['businessPhone']!,
+          businessAddress: result['businessAddress']!,
+        );
+        if (mounted) {
+          ToastService.showSuccess(context, 'Workshop Details updated');
+          _loadProfileData();
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ToastService.showError(context, 'Update failed: $e');
+        }
+      }
+    }
+  }
+
+  Future<void> _editPersonalInfo() async {
+    if (_userProfile == null) return;
+    
+    final nameController = TextEditingController(text: _userProfile!.fullname);
+    final phoneController = TextEditingController(text: _userProfile!.phone);
+    final formKey = GlobalKey<FormState>();
+    
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 24,
+          right: 24,
+          top: 24,
+        ),
+        child: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Personal Information',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1B2A3B),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Full Name'),
+                validator: (v) => v!.isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: phoneController,
+                decoration: const InputDecoration(labelText: 'Phone Number'),
+                validator: (v) => v!.isEmpty ? 'Required' : null,
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      Navigator.pop(context, true);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Save Details'),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+    
+    if (result == true && mounted) {
+      setState(() => _isLoading = true);
+      try {
+        await AuthService.updateUserProfile(
+          fullname: nameController.text.trim(),
+          phone: phoneController.text.trim(),
+          plateNumber: _userProfile!.plateNumber,
+        );
+        if (mounted) {
+          ToastService.showSuccess(context, 'Personal Info updated');
+          _loadProfileData();
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ToastService.showError(context, 'Update failed: $e');
+        }
+      }
+    }
+  }
+
 
   void _handleNavigation(int index) {
     setState(() {
@@ -174,23 +319,39 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      _mechanicName ?? 'Michael Scott',
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    if (_isLoading)
+                      const CircularProgressIndicator()
+                    else ...[
+                      Text(
+                        _providerProfile?.businessName.isNotEmpty == true 
+                            ? _providerProfile!.businessName 
+                            : 'Workshop Provider',
+                        style: const TextStyle(
+                          color: textColor,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Senior Mechanic',
-                      style: TextStyle(
-                        color: Color(0xFFAAB8C2),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 8),
+                      Text(
+                        _providerProfile?.providerType.replaceAll('_', ' ') ?? 'Provider',
+                        style: const TextStyle(
+                          color: Color(0xFFAAB8C2),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
+                      if (_providerProfile?.businessPhone.isNotEmpty == true) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _providerProfile!.businessPhone,
+                          style: const TextStyle(
+                            color: Color(0xFFAAB8C2),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ]
+                    ],
                   ],
                 ),
               ),
@@ -222,6 +383,7 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
                           iconColor: const Color(0xFF3282B8),
                           iconBgColor: const Color(0xFFF0F6FA),
                           title: 'Personal Information',
+                          onTap: _editPersonalInfo,
                         ),
                         _buildDivider(),
                         _buildSettingsRow(
@@ -229,6 +391,7 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
                           iconColor: const Color(0xFFE87A4F),
                           iconBgColor: const Color(0xFFFDF2ED),
                           title: 'Workshop Details',
+                          onTap: _editProfile,
                         ),
                         _buildDivider(),
                         _buildSettingsRow(
@@ -341,9 +504,10 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
     required Color iconColor,
     required Color iconBgColor,
     required String title,
+    VoidCallback? onTap,
   }) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap ?? () {},
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(

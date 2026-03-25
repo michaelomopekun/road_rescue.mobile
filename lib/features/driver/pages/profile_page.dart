@@ -3,6 +3,8 @@ import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.d
 import 'package:road_rescue/theme/app_colors.dart';
 import 'package:road_rescue/services/token_service.dart';
 import 'package:road_rescue/services/auth_notifier.dart';
+import 'package:road_rescue/services/auth_service.dart';
+import 'package:road_rescue/services/toast_service.dart';
 
 class DriverProfilePage extends StatefulWidget {
   const DriverProfilePage({super.key});
@@ -13,7 +15,132 @@ class DriverProfilePage extends StatefulWidget {
 
 class _DriverProfilePageState extends State<DriverProfilePage> {
   int _selectedNavIndex = 4;
+  UserProfile? _userProfile;
+  bool _isLoading = true;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() => _isLoading = true);
+    try {
+      final profile = await AuthService.getUserProfile();
+      if (mounted) {
+        setState(() {
+          _userProfile = profile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ToastService.showError(context, 'Failed to load profile');
+      }
+    }
+  }
+
+  Future<void> _editProfile() async {
+    if (_userProfile == null) return;
+    
+    final nameController = TextEditingController(text: _userProfile!.fullname);
+    final phoneController = TextEditingController(text: _userProfile!.phone);
+    final plateController = TextEditingController(text: _userProfile!.plateNumber);
+    final formKey = GlobalKey<FormState>();
+    
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 24,
+          right: 24,
+          top: 24,
+        ),
+        child: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Edit Profile',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1B2A3B),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Full Name'),
+                validator: (v) => v!.isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: phoneController,
+                decoration: const InputDecoration(labelText: 'Phone'),
+                validator: (v) => v!.isEmpty ? 'Required' : null,
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: plateController,
+                decoration: const InputDecoration(labelText: 'Plate/Vehicle Number'),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      Navigator.pop(context, true);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Save Details'),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+    
+    if (result == true && mounted) {
+      setState(() => _isLoading = true);
+      try {
+        await AuthService.updateUserProfile(
+          fullname: nameController.text.trim(),
+          phone: phoneController.text.trim(),
+          plateNumber: plateController.text.trim(),
+        );
+        if (mounted) {
+          ToastService.showSuccess(context, 'Profile updated');
+          _loadProfile();
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ToastService.showError(context, 'Update failed: $e');
+        }
+      }
+    }
+  }
   void _handleNavigation(int index) {
     if (index == _selectedNavIndex) return;
     switch (index) {
@@ -62,15 +189,18 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.border),
+                  GestureDetector(
+                    onTap: _editProfile,
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Icon(Icons.edit_outlined, color: AppColors.textSecondary),
                     ),
-                    child: const Icon(Icons.settings_outlined, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -82,88 +212,93 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                 children: [
                   const SizedBox(height: 24),
                   
-                  // Avatar Section
-                  Center(
-                    child: Stack(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFFDE68A), width: 4), // Golden ring
-                          ),
-                          child: const CircleAvatar(
-                            radius: 48,
-                            backgroundColor: Color(0xFFE2E8F0),
-                            child: Icon(Icons.person, size: 48, color: Color(0xFF94A3B8)),
-                          ),
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: Container(
+                  if (_isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else ...[
+                    // Avatar Section
+                    Center(
+                      child: Stack(
+                        children: [
+                          Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E4C4E),
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
+                              border: Border.all(color: const Color(0xFFFDE68A), width: 4), // Golden ring
                             ),
-                            child: const Icon(Icons.verified, size: 16, color: Colors.white),
+                            child: const CircleAvatar(
+                              radius: 48,
+                              backgroundColor: Color(0xFFE2E8F0),
+                              child: Icon(Icons.person, size: 48, color: Color(0xFF94A3B8)),
+                            ),
+                          ),
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E4C4E),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: const Icon(Icons.verified, size: 16, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    Center(
+                      child: Text(
+                        _userProfile?.fullname ?? 'Unknown',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDFEAF4),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _userProfile?.email ?? 'driver@example.com',
+                          style: const TextStyle(
+                            color: Color(0xFF5A789A), // Based on driver specific theme colors
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  const Center(
-                    child: Text(
-                      'Michael Scott',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
                       ),
                     ),
-                  ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDFEAF4),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'Premium Member',
-                        style: TextStyle(
-                          color: Color(0xFF5A789A), // Based on driver specific theme colors
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
+                    
+                    const SizedBox(height: 32),
+                    
+                    // Menu Items
+                    _buildMenuItem(
+                      icon: Icons.person_outline,
+                      title: 'Personal Information',
+                      subtitle: _userProfile?.phone ?? 'Not provided',
+                      iconBgColor: const Color(0xFFE0E7FF),
+                      iconColor: const Color(0xFF4F46E5),
                     ),
-                  ),
-                  
-                  const SizedBox(height: 32),
-                  
-                  // Menu Items
-                  _buildMenuItem(
-                    icon: Icons.person_outline,
-                    title: 'Personal Information',
-                    iconBgColor: const Color(0xFFE0E7FF),
-                    iconColor: const Color(0xFF4F46E5),
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.directions_car_outlined,
-                    title: 'Vehicle Details',
-                    subtitle: 'Toyota Corolla',
-                    iconBgColor: const Color(0xFFDCFCE7),
-                    iconColor: const Color(0xFF16A34A),
-                  ),
+                    _buildMenuItem(
+                      icon: Icons.directions_car_outlined,
+                      title: 'Vehicle Details',
+                      subtitle: _userProfile?.plateNumber.isNotEmpty == true ? _userProfile!.plateNumber : 'No plate number',
+                      iconBgColor: const Color(0xFFDCFCE7),
+                      iconColor: const Color(0xFF16A34A),
+                    ),
+                  ],
                   _buildMenuItem(
                     icon: Icons.credit_card_outlined,
                     title: 'Payment Methods',
