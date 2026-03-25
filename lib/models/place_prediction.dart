@@ -12,10 +12,13 @@ class PlacePrediction {
   });
 
   factory PlacePrediction.fromJson(Map<String, dynamic> json) {
+    final structuredFormatting =
+        json['structured_formatting'] as Map<String, dynamic>?;
+
     return PlacePrediction(
       placeId: json['place_id'] ?? '',
-      mainText: json['main_text'] ?? json['description'] ?? '',
-      secondaryText: json['secondary_text'],
+      mainText: structuredFormatting?['main_text'] ?? json['description'] ?? '',
+      secondaryText: structuredFormatting?['secondary_text'],
       description: json['description'] ?? '',
     );
   }
