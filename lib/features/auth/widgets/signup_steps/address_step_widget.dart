@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/models/place_prediction.dart';
 import 'package:road_rescue/models/workshop_location.dart';
+import 'package:road_rescue/services/google_places_service.dart';
 import 'package:road_rescue/shared/widgets/custom_text_field.dart';
 import 'package:road_rescue/shared/widgets/primary_button.dart';
 import 'package:road_rescue/services/toast_service.dart';
@@ -19,75 +20,12 @@ class AddressStepWidget extends StatefulWidget {
 
 class _AddressStepWidgetState extends State<AddressStepWidget> {
   final _addressController = TextEditingController();
+  final GooglePlacesService _placesService = GooglePlacesService();
 
   List<PlacePrediction> _predictions = [];
   WorkshopLocation? _selectedLocation;
   Timer? _debounceTimer;
   bool _isLoading = false;
-
-  // Mock suggestions data
-  static const List<Map<String, String>> _mockSuggestions = [
-    {
-      'placeId': 'mock_1',
-      'mainText': 'Bremerton Children\'s Centre',
-      'secondaryText': 'Coatbridge House, Camoustie Dr, London, N1 0DX',
-      'formattedAddress':
-          'Bremerton Children\'s Centre, Coatbridge House, Camoustie Dr, London, N1 0DX',
-      'city': 'London',
-      'state': 'Greater London',
-      'country': 'United Kingdom',
-      'latitude': '51.5302',
-      'longitude': '-0.1246',
-    },
-    {
-      'placeId': 'mock_2',
-      'mainText': 'Jean Stokes Community Centre',
-      'secondaryText': 'Coatbridge House, Camoustie Dr, London, N1 0DX',
-      'formattedAddress':
-          'Jean Stokes Community Centre, Coatbridge House, Camoustie Dr, London, N1 0DX',
-      'city': 'London',
-      'state': 'Greater London',
-      'country': 'United Kingdom',
-      'latitude': '51.5305',
-      'longitude': '-0.1248',
-    },
-    {
-      'placeId': 'mock_3',
-      'mainText': 'Flat 1, Coatbridge House',
-      'secondaryText': 'Camoustie Dr, London, N1 0DX',
-      'formattedAddress':
-          'Flat 1, Coatbridge House, Camoustie Dr, London, N1 0DX',
-      'city': 'London',
-      'state': 'Greater London',
-      'country': 'United Kingdom',
-      'latitude': '51.5308',
-      'longitude': '-0.1250',
-    },
-    {
-      'placeId': 'mock_4',
-      'mainText': 'City Central Garage',
-      'secondaryText': 'Market Street, London, N1 9AB',
-      'formattedAddress':
-          'City Central Garage, 45 Market Street, London, N1 9AB',
-      'city': 'London',
-      'state': 'Greater London',
-      'country': 'United Kingdom',
-      'latitude': '51.5315',
-      'longitude': '-0.1260',
-    },
-    {
-      'placeId': 'mock_5',
-      'mainText': 'North London Auto Services',
-      'secondaryText': 'High Road, London, N15 4QT',
-      'formattedAddress':
-          'North London Auto Services, 123 High Road, London, N15 4QT',
-      'city': 'London',
-      'state': 'Greater London',
-      'country': 'United Kingdom',
-      'latitude': '51.6100',
-      'longitude': '-0.1050',
-    },
-  ];
 
   @override
   void initState() {
@@ -120,7 +58,7 @@ class _AddressStepWidgetState extends State<AddressStepWidget> {
       print('⏱️ Debounce fired with query: "$query" (length: ${query.length})');
 
       if (query.length > 2) {
-        _fetchMockPredictions(query);
+        _fetchPredictions(query);
       } else {
         print('❌ Query too short, clearing predictions');
         setState(() {
@@ -130,73 +68,72 @@ class _AddressStepWidgetState extends State<AddressStepWidget> {
     });
   }
 
-  void _fetchMockPredictions(String query) {
+  Future<void> _fetchPredictions(String query) async {
     setState(() {
       _isLoading = true;
     });
 
-    // Simulate network delay
-    Future.delayed(const Duration(milliseconds: 300), () {
-      print('🔍 Searching for: $query');
-      print('📋 Total mock suggestions: ${_mockSuggestions.length}');
-
-      final filteredSuggestions = _mockSuggestions.where((suggestion) {
-        final mainText = suggestion['mainText']!.toLowerCase();
-        final secondaryText = suggestion['secondaryText']!.toLowerCase();
-        final queryLower = query.toLowerCase();
-
-        final matches =
-            mainText.contains(queryLower) || secondaryText.contains(queryLower);
-
-        print('  ✓ ${suggestion['mainText']} - Matches: $matches');
-        return matches;
-      }).toList();
-
-      print('✅ Filtered results: ${filteredSuggestions.length}');
+    try {
+      print('🔍 Searching for: $query via Google Places');
+      final results = await _placesService.getAutocompleteResults(query);
+      print('✅ Found results: ${results.length}');
 
       if (mounted) {
         setState(() {
-          _predictions = filteredSuggestions
-              .map(
-                (s) => PlacePrediction(
-                  placeId: s['placeId']!,
-                  mainText: s['mainText']!,
-                  secondaryText: s['secondaryText'],
-                  description: s['formattedAddress']!,
-                ),
-              )
-              .toList();
+          _predictions = results;
           _isLoading = false;
         });
       }
-    });
+    } catch (e) {
+      print('❌ Error fetching predictions: $e');
+      if (mounted) {
+        setState(() {
+          _predictions = [];
+          _isLoading = false;
+        });
+      }
+    }
   }
 
-  void _onPredictionSelected(PlacePrediction prediction) {
+  Future<void> _onPredictionSelected(PlacePrediction prediction) async {
     print('🎯 Prediction selected: "${prediction.mainText}"');
 
-    final mockData = _mockSuggestions.firstWhere(
-      (s) => s['placeId'] == prediction.placeId,
-      orElse: () => _mockSuggestions.first,
-    );
-
-    final location = WorkshopLocation(
-      formattedAddress: mockData['formattedAddress']!,
-      placeId: mockData['placeId']!,
-      latitude: double.parse(mockData['latitude']!),
-      longitude: double.parse(mockData['longitude']!),
-      city: mockData['city']!,
-      state: mockData['state']!,
-      country: mockData['country']!,
-    );
-
-    print('✅ Location set: ${location.formattedAddress}');
-
+    // Clear predictions immediately so the list hides
     setState(() {
-      _selectedLocation = location;
       _predictions = [];
-      // Don't set _addressController.text here - let the green indicator show instead
+      _isLoading = true;
     });
+
+    try {
+      final location = await _placesService.getPlaceDetails(prediction.placeId);
+
+      if (location != null) {
+        print('✅ Location set: ${location.formattedAddress}');
+        if (mounted) {
+          setState(() {
+            _selectedLocation = location;
+            _isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          ToastService.showError(
+            context,
+            'Failed to get location details - try again',
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ToastService.showError(context, 'Failed to get location details: $e');
+      }
+    }
   }
 
   void _onContinue() {
