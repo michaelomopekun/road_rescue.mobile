@@ -42,14 +42,16 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
     }
   }
 
-  Future<void> _editProfile() async {
+  Future<void> _editProfile({bool isVehicle = false}) async {
     if (_userProfile == null) return;
-    
+
     final nameController = TextEditingController(text: _userProfile!.fullname);
     final phoneController = TextEditingController(text: _userProfile!.phone);
-    final plateController = TextEditingController(text: _userProfile!.plateNumber);
+    final plateController = TextEditingController(
+      text: _userProfile!.plateNumber,
+    );
     final formKey = GlobalKey<FormState>();
-    
+
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -69,32 +71,37 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Edit Profile',
-                style: TextStyle(
+              Text(
+                isVehicle ? 'Edit Vehicle Details' : 'Edit Personal Info',
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1B2A3B),
                 ),
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Full Name'),
-                validator: (v) => v!.isEmpty ? 'Required' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: phoneController,
-                decoration: const InputDecoration(labelText: 'Phone'),
-                validator: (v) => v!.isEmpty ? 'Required' : null,
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: plateController,
-                decoration: const InputDecoration(labelText: 'Plate/Vehicle Number'),
-              ),
+              if (!isVehicle) ...[
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Full Name'),
+                  validator: (v) => v!.isEmpty ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(labelText: 'Phone'),
+                  validator: (v) => v!.isEmpty ? 'Required' : null,
+                  keyboardType: TextInputType.phone,
+                ),
+              ] else ...[
+                TextFormField(
+                  controller: plateController,
+                  decoration: const InputDecoration(
+                    labelText: 'Plate/Vehicle Number',
+                  ),
+                  validator: (v) => v!.isEmpty ? 'Required' : null,
+                ),
+              ],
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -111,7 +118,10 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Save Details'),
+                  child: const Text(
+                    'Save Details',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -120,7 +130,7 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
         ),
       ),
     );
-    
+
     if (result == true && mounted) {
       setState(() => _isLoading = true);
       try {
@@ -141,6 +151,7 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
       }
     }
   }
+
   void _handleNavigation(int index) {
     if (index == _selectedNavIndex) return;
     switch (index) {
@@ -177,7 +188,10 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 16.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -190,7 +204,7 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: _editProfile,
+                    onTap: () => _editProfile(isVehicle: false),
                     child: Container(
                       width: 44,
                       height: 44,
@@ -199,19 +213,22 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.border),
                       ),
-                      child: const Icon(Icons.edit_outlined, color: AppColors.textSecondary),
+                      child: const Icon(
+                        Icons.edit_outlined,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            
+
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 children: [
                   const SizedBox(height: 24),
-                  
+
                   if (_isLoading)
                     const Center(child: CircularProgressIndicator())
                   else ...[
@@ -223,12 +240,19 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFFFDE68A), width: 4), // Golden ring
+                              border: Border.all(
+                                color: const Color(0xFFFDE68A),
+                                width: 4,
+                              ), // Golden ring
                             ),
                             child: const CircleAvatar(
                               radius: 48,
                               backgroundColor: Color(0xFFE2E8F0),
-                              child: Icon(Icons.person, size: 48, color: Color(0xFF94A3B8)),
+                              child: Icon(
+                                Icons.person,
+                                size: 48,
+                                color: Color(0xFF94A3B8),
+                              ),
                             ),
                           ),
                           Positioned(
@@ -239,17 +263,24 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFF1E4C4E),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
                               ),
-                              child: const Icon(Icons.verified, size: 16, color: Colors.white),
+                              child: const Icon(
+                                Icons.verified,
+                                size: 16,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     Center(
                       child: Text(
                         _userProfile?.fullname ?? 'Unknown',
@@ -260,12 +291,15 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     Center(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFDFEAF4),
                           borderRadius: BorderRadius.circular(20),
@@ -273,16 +307,18 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                         child: Text(
                           _userProfile?.email ?? 'driver@example.com',
                           style: const TextStyle(
-                            color: Color(0xFF5A789A), // Based on driver specific theme colors
+                            color: Color(
+                              0xFF5A789A,
+                            ), // Based on driver specific theme colors
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // Menu Items
                     _buildMenuItem(
                       icon: Icons.person_outline,
@@ -290,21 +326,25 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                       subtitle: _userProfile?.phone ?? 'Not provided',
                       iconBgColor: const Color(0xFFE0E7FF),
                       iconColor: const Color(0xFF4F46E5),
+                      onTap: () => _editProfile(isVehicle: false),
                     ),
                     _buildMenuItem(
                       icon: Icons.directions_car_outlined,
                       title: 'Vehicle Details',
-                      subtitle: _userProfile?.plateNumber.isNotEmpty == true ? _userProfile!.plateNumber : 'No plate number',
+                      subtitle: _userProfile?.plateNumber.isNotEmpty == true
+                          ? _userProfile!.plateNumber
+                          : 'No plate number',
                       iconBgColor: const Color(0xFFDCFCE7),
                       iconColor: const Color(0xFF16A34A),
+                      onTap: () => _editProfile(isVehicle: true),
                     ),
                   ],
-                  _buildMenuItem(
-                    icon: Icons.credit_card_outlined,
-                    title: 'Payment Methods',
-                    iconBgColor: const Color(0xFFF3E8FF),
-                    iconColor: const Color(0xFF9333EA),
-                  ),
+                  // _buildMenuItem(
+                  //   icon: Icons.credit_card_outlined,
+                  //   title: 'Payment Methods',
+                  //   iconBgColor: const Color(0xFFF3E8FF),
+                  //   iconColor: const Color(0xFF9333EA),
+                  // ),
                   _buildMenuItem(
                     icon: Icons.notifications_outlined,
                     title: 'Notification Settings',
@@ -317,9 +357,9 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                     iconBgColor: const Color(0xFFE0F2FE),
                     iconColor: const Color(0xFF0284C7),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Log Out Button
                   GestureDetector(
                     onTap: _logout,
@@ -347,9 +387,9 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   const Center(
                     child: Text(
                       'Version 2.4.0 (1293)',
@@ -379,54 +419,58 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
     String? subtitle,
     required Color iconBgColor,
     required Color iconColor,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor),
             ),
-            child: Icon(icon, color: iconColor),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 4),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    subtitle,
+                    title,
                     style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                   ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-        ],
+            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+          ],
+        ),
       ),
     );
   }

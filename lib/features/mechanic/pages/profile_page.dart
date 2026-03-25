@@ -48,21 +48,19 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
     }
   }
 
-
   Future<void> _editProfile() async {
     if (_providerProfile == null) return;
-    
+
     final result = await showModalBottomSheet<Map<String, String>>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => EditWorkshopBottomSheet(
-        providerProfile: _providerProfile!,
-      ),
+      builder: (context) =>
+          EditWorkshopBottomSheet(providerProfile: _providerProfile!),
     );
-    
+
     if (result != null && mounted) {
       setState(() => _isLoading = true);
       try {
@@ -86,11 +84,11 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
 
   Future<void> _editPersonalInfo() async {
     if (_userProfile == null) return;
-    
+
     final nameController = TextEditingController(text: _userProfile!.fullname);
     final phoneController = TextEditingController(text: _userProfile!.phone);
     final formKey = GlobalKey<FormState>();
-    
+
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -156,7 +154,7 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
         ),
       ),
     );
-    
+
     if (result == true && mounted) {
       setState(() => _isLoading = true);
       try {
@@ -177,7 +175,6 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
       }
     }
   }
-
 
   void _handleNavigation(int index) {
     setState(() {
@@ -323,8 +320,8 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
                       const CircularProgressIndicator()
                     else ...[
                       Text(
-                        _providerProfile?.businessName.isNotEmpty == true 
-                            ? _providerProfile!.businessName 
+                        _providerProfile?.businessName.isNotEmpty == true
+                            ? _providerProfile!.businessName
                             : 'Workshop Provider',
                         style: const TextStyle(
                           color: textColor,
@@ -334,14 +331,16 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        _providerProfile?.providerType.replaceAll('_', ' ') ?? 'Provider',
+                        _providerProfile?.providerType.replaceAll('_', ' ') ??
+                            'Provider',
                         style: const TextStyle(
                           color: Color(0xFFAAB8C2),
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (_providerProfile?.businessPhone.isNotEmpty == true) ...[
+                      if (_providerProfile?.businessPhone.isNotEmpty ==
+                          true) ...[
                         const SizedBox(height: 4),
                         Text(
                           _providerProfile!.businessPhone,
@@ -350,7 +349,7 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
                             fontSize: 14,
                           ),
                         ),
-                      ]
+                      ],
                     ],
                   ],
                 ),
@@ -394,19 +393,19 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
                           onTap: _editProfile,
                         ),
                         _buildDivider(),
-                        _buildSettingsRow(
-                          icon: Icons.credit_card,
-                          iconColor: const Color(0xFF2EB774),
-                          iconBgColor: const Color(0xFFEBF7F1),
-                          title: 'Payout Methods',
-                        ),
-                        _buildDivider(),
-                        _buildSettingsRow(
-                          icon: Icons.badge_outlined,
-                          iconColor: const Color(0xFF9B51E0),
-                          iconBgColor: const Color(0xFFF5EEFC),
-                          title: 'Documents & Verification',
-                        ),
+                        // _buildSettingsRow(
+                        //   icon: Icons.credit_card,
+                        //   iconColor: const Color(0xFF2EB774),
+                        //   iconBgColor: const Color(0xFFEBF7F1),
+                        //   title: 'Payout Methods',
+                        // ),
+                        // _buildDivider(),
+                        // _buildSettingsRow(
+                        //   icon: Icons.badge_outlined,
+                        //   iconColor: const Color(0xFF9B51E0),
+                        //   iconBgColor: const Color(0xFFF5EEFC),
+                        //   title: 'Documents & Verification',
+                        // ),
                       ],
                     ),
                   ),
