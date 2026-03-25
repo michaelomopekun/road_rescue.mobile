@@ -372,6 +372,65 @@ class AuthService {
       rethrow;
     }
   }
+
+  /// Get authenticated user profile
+  static Future<UserProfile> getUserProfile() async {
+    try {
+      final response = await ApiClient.get('/auth/me', requiresAuth: true);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return UserProfile.fromJson(data);
+      } else if (response.statusCode == 404) {
+        throw NotFoundException('User profile not found');
+      } else if (response.statusCode == 401) {
+        throw UnauthorizedException('Unauthorized - invalid or missing token');
+      } else {
+        throw ApiException('Failed to get user profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Update authenticated user profile
+  static Future<UserProfile> updateUserProfile({
+    String? fullname,
+    String? phone,
+    String? plateNumber,
+  }) async {
+    try {
+      final body = <String, dynamic>{};
+      if (fullname != null) body['fullname'] = fullname;
+      if (phone != null) body['phone'] = phone;
+      if (plateNumber != null) body['plateNumber'] = plateNumber;
+
+      final response = await ApiClient.put(
+        '/auth/me',
+        body: body,
+        requiresAuth: true,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return UserProfile.fromJson(data);
+      } else if (response.statusCode == 400) {
+        final error = jsonDecode(response.body);
+        final messages = error['message'] is List
+            ? List<String>.from((error['message'] as List).map((e) => e.toString()))
+            : [error['message']?.toString() ?? 'Validation error'];
+        throw ValidationException(messages);
+      } else if (response.statusCode == 404) {
+        throw NotFoundException('User not found');
+      } else if (response.statusCode == 401) {
+        throw UnauthorizedException('Unauthorized - invalid or missing token');
+      } else {
+        throw ApiException('Failed to update user profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
 /// Response model for registration
@@ -528,6 +587,45 @@ class GetVerificationStatusResponse {
       businessName: json['businessName'] as String,
       verificationStatus: json['verificationStatus'] as String,
       verifiedAt: json['verifiedAt'] as String?,
+      createdAt: json['createdAt'] as String? ?? '',
+      updatedAt: json['updatedAt'] as String? ?? '',
+    );
+  }
+}
+
+/// User Profile model
+class UserProfile {
+  final String id;
+  final String fullname;
+  final String email;
+  final String phone;
+  final String plateNumber;
+  final String role;
+  final bool isActive;
+  final String createdAt;
+  final String updatedAt;
+
+  UserProfile({
+    required this.id,
+    required this.fullname,
+    required this.email,
+    required this.phone,
+    required this.plateNumber,
+    required this.role,
+    required this.isActive,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
+      id: json['id'] as String? ?? '',
+      fullname: json['fullname'] as String? ?? 'User',
+      email: json['email'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      plateNumber: json['plateNumber'] as String? ?? '',
+      role: json['role'] as String? ?? 'DRIVER',
+      isActive: json['isActive'] as bool? ?? true,
       createdAt: json['createdAt'] as String? ?? '',
       updatedAt: json['updatedAt'] as String? ?? '',
     );

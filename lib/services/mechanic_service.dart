@@ -374,6 +374,73 @@ class MechanicService {
       throw ApiException('Error loading provider dashboard: $e');
     }
   }
+
+  /// Get authenticated provider profile
+  static Future<ProviderProfile> getProviderProfile() async {
+    try {
+      final response = await ApiClient.get('/providers/me/profile', requiresAuth: true);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return ProviderProfile.fromJson(data);
+      } else if (response.statusCode == 404) {
+        throw NotFoundException('Provider profile not found');
+      } else if (response.statusCode == 403) {
+        throw ApiException('Forbidden - User is not a provider');
+      } else if (response.statusCode == 401) {
+        throw UnauthorizedException('Unauthorized - invalid or missing token');
+      } else {
+        throw ApiException('Failed to get provider profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Update authenticated provider profile
+  static Future<ProviderProfile> updateProviderProfile({
+    String? businessName,
+    String? businessPhone,
+    String? businessAddress,
+    double? baseLatitude,
+    double? baseLongitude,
+  }) async {
+    try {
+      final body = <String, dynamic>{};
+      if (businessName != null) body['businessName'] = businessName;
+      if (businessPhone != null) body['businessPhone'] = businessPhone;
+      if (businessAddress != null) body['businessAddress'] = businessAddress;
+      if (baseLatitude != null) body['baseLatitude'] = baseLatitude;
+      if (baseLongitude != null) body['baseLongitude'] = baseLongitude;
+
+      final response = await ApiClient.put(
+        '/providers/me/profile',
+        body: body,
+        requiresAuth: true,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return ProviderProfile.fromJson(data);
+      } else if (response.statusCode == 400) {
+        final error = jsonDecode(response.body);
+        final messages = error['message'] is List
+            ? List<String>.from((error['message'] as List).map((e) => e.toString()))
+            : [error['message']?.toString() ?? 'Validation error'];
+        throw ValidationException(messages);
+      } else if (response.statusCode == 404) {
+        throw NotFoundException('Provider profile not found');
+      } else if (response.statusCode == 403) {
+        throw ApiException('Forbidden - User is not a provider');
+      } else if (response.statusCode == 401) {
+        throw UnauthorizedException('Unauthorized - invalid or missing token');
+      } else {
+        throw ApiException('Failed to update provider profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
 /// Model for provider verification status
@@ -779,4 +846,55 @@ class ProviderDashboardData {
 
   /// Get total earnings (from monthly earnings data)
   double get totalEarnings => monthlyEarnings;
+}
+
+/// Model for detailed Provider Profile
+class ProviderProfile {
+  final String id;
+  final String userId;
+  final String providerType;
+  final String businessName;
+  final String businessPhone;
+  final String businessAddress;
+  final String verificationStatus;
+  final String availabilityStatus;
+  final String? verifiedAt;
+  final double? baseLatitude;
+  final double? baseLongitude;
+  final String createdAt;
+  final String updatedAt;
+
+  ProviderProfile({
+    required this.id,
+    required this.userId,
+    required this.providerType,
+    required this.businessName,
+    required this.businessPhone,
+    required this.businessAddress,
+    required this.verificationStatus,
+    required this.availabilityStatus,
+    this.verifiedAt,
+    this.baseLatitude,
+    this.baseLongitude,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory ProviderProfile.fromJson(Map<String, dynamic> json) {
+    return ProviderProfile(
+      id: json['id'] as String? ?? '',
+      userId: json['userId'] as String? ?? '',
+      providerType: json['providerType'] as String? ?? 'TOW_TRUCK',
+      businessName: json['businessName'] as String? ?? 'Provider',
+      businessPhone: json['businessPhone'] as String? ?? '',
+      businessAddress: json['businessAddress'] as String? ?? '',
+      verificationStatus: json['verificationStatus'] as String? ?? 'PENDING',
+      availabilityStatus: json['availabilityStatus'] as String? ?? 'OFFLINE',
+      verifiedAt: json['verifiedAt'] as String?,
+      baseLatitude: (json['baseLatitude'] as num?)?.toDouble(),
+      baseLongitude: (json['baseLongitude'] as num?)?.toDouble(),
+      createdAt: json['createdAt'] as String? ?? '',
+      updatedAt: json['updatedAt'] as String? ?? '',
+    );
+  }
 }
