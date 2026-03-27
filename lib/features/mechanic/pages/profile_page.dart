@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:road_rescue/features/mechanic/widgets/dashboard_bottom_nav_bar.dart';
 import 'package:road_rescue/features/mechanic/widgets/edit_workshop_bottom_sheet.dart';
 import 'package:road_rescue/services/token_service.dart';
@@ -64,10 +65,28 @@ class _MechanicProfilePageState extends State<MechanicProfilePage> {
     if (result != null && mounted) {
       setState(() => _isLoading = true);
       try {
+        double? latitude;
+        double? longitude;
+
+        try {
+          final address = result['businessAddress']!;
+          if (address.isNotEmpty) {
+            List<Location> locations = await locationFromAddress(address);
+            if (locations.isNotEmpty) {
+              latitude = locations.first.latitude;
+              longitude = locations.first.longitude;
+            }
+          }
+        } catch (e) {
+          debugPrint('Geocoding error: $e');
+        }
+
         await MechanicService.updateProviderProfile(
           businessName: result['businessName']!,
           businessPhone: result['businessPhone']!,
           businessAddress: result['businessAddress']!,
+          baseLatitude: latitude,
+          baseLongitude: longitude,
         );
         if (mounted) {
           ToastService.showSuccess(context, 'Workshop Details updated');
