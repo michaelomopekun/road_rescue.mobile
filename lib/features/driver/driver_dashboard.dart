@@ -179,14 +179,26 @@ class _DriverDashboardState extends State<DriverDashboard> {
     }
   }
 
+  Future<void> _handleRefresh() async {
+    await Future.wait([
+      _loadDriverInfo(),
+      _loadRecentActivity(),
+      RequestStateManager().loadActiveRequest(),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
+        child: RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: _handleRefresh,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header section
@@ -452,6 +464,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
             ],
           ),
         ),
+      ),
       ),
       bottomNavigationBar: DashboardBottomNavBar(
         selectedIndex: _selectedNavIndex,

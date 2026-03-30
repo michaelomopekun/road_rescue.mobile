@@ -112,7 +112,7 @@ class _QuotationViewState extends State<QuotationView> {
               child: Text(
                 quote.description.isNotEmpty
                     ? quote.description
-                    : 'No detailed description provided by the mechanic.',
+                    : 'Engine repair, maintenance and diagnostics',
                 style: const TextStyle(
                   color: Colors.black54,
                   fontSize: 14,
