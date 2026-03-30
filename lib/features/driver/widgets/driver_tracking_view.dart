@@ -59,6 +59,26 @@ class _DriverTrackingViewState extends State<DriverTrackingView> {
     _fetchRoute();
   }
 
+  @override
+  void didUpdateWidget(DriverTrackingView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // The ActiveRequestPage initially passes a request that might not have provider 
+    // coordinates. They are populated shortly after via a REST refetch.
+    final provLat = widget.request.providerLatitude;
+    final provLng = widget.request.providerLongitude;
+    
+    if (provLat != null && provLng != null && _mechanicPosition == null) {
+      _mechanicPosition = LatLng(provLat, provLng);
+      _updateMarkers();
+      
+      if (_directions == null && !_isLoadingRoute) {
+        setState(() => _isLoadingRoute = true);
+        _fetchRoute();
+      }
+    }
+  }
+
   Future<void> _fetchRoute() async {
     final origin = _mechanicPosition;
     if (origin == null) {
