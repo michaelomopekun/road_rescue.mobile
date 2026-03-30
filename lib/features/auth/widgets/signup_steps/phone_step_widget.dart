@@ -22,15 +22,59 @@ class _PhoneStepWidgetState extends State<PhoneStepWidget> {
     super.dispose();
   }
 
+  String _formatPhoneNumber(String number) {
+    String formatted = number.replaceAll(RegExp(r'[\s\-\(\)\.]'), '');
+    if (formatted.isEmpty) return formatted;
+
+    if (formatted.startsWith('0')) {
+      formatted = '+234${formatted.substring(1)}';
+    } else if (formatted.startsWith('234')) {
+      formatted = '+$formatted';
+    } else if (!formatted.startsWith('+')) {
+      formatted = '+234$formatted';
+    }
+    return formatted;
+  }
+
+  String? _validateNigerianPhone(String formattedNumber) {
+    final baseError = Validators.validatePhoneNumber(formattedNumber);
+
+    if (baseError != null &&
+        !baseError.contains('10 digits') &&
+        !baseError.contains('15 digits')) {
+      return baseError;
+    }
+
+    if (formattedNumber.length < 14) {
+      return 'Phone number is not valid (should be 11 digits)';
+    } else if (formattedNumber.length > 14) {
+      return 'Phone number is not valid (should be 11 digits)';
+    }
+    return null;
+  }
+
   void _onPhoneChanged(String value) {
     setState(() {
-      _errorMessage = Validators.validatePhoneNumber(value);
+      if (value.isEmpty) {
+        _errorMessage = null;
+        return;
+      }
+      final formattedNumber = _formatPhoneNumber(value);
+      _errorMessage = _validateNigerianPhone(formattedNumber);
     });
   }
 
   void _onContinue() {
     final phoneNumber = _phoneController.text.trim();
-    final validationError = Validators.validatePhoneNumber(phoneNumber);
+    if (phoneNumber.isEmpty) {
+      setState(() {
+        _errorMessage = 'Phone number is required';
+      });
+      return;
+    }
+
+    final formattedNumber = _formatPhoneNumber(phoneNumber);
+    final validationError = _validateNigerianPhone(formattedNumber);
 
     if (validationError != null) {
       setState(() {
@@ -39,7 +83,7 @@ class _PhoneStepWidgetState extends State<PhoneStepWidget> {
       return;
     }
 
-    widget.onContinue(phoneNumber);
+    widget.onContinue(formattedNumber);
   }
 
   @override
@@ -54,7 +98,7 @@ class _PhoneStepWidgetState extends State<PhoneStepWidget> {
         const SizedBox(height: 32),
         CustomTextField(
           controller: _phoneController,
-          hintText: '+1 (555) 000-0000',
+          hintText: '+234 8135763381',
           keyboardType: TextInputType.phone,
           onChanged: _onPhoneChanged,
         ),

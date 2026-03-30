@@ -250,12 +250,9 @@ class _DriverWalletPageState extends State<DriverWalletPage> {
       case 1:
         break;
       case 2:
-        Navigator.of(context).pushReplacementNamed('/driver/map');
-        break;
-      case 3:
         Navigator.of(context).pushReplacementNamed('/driver/history');
         break;
-      case 4:
+      case 3:
         Navigator.of(context).pushReplacementNamed('/driver/profile');
         break;
     }
@@ -612,6 +609,7 @@ class _DriverWalletPageState extends State<DriverWalletPage> {
       bottomNavigationBar: DashboardBottomNavBar(
         selectedIndex: _selectedNavIndex,
         onTabChanged: _handleNavigation,
+        variant: DashboardNavVariant.driverDashboard,
       ),
     );
   }

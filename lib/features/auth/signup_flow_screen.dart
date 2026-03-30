@@ -27,6 +27,7 @@ class SignupFlowScreen extends StatefulWidget {
 class _SignupFlowScreenState extends State<SignupFlowScreen> {
   late List<SignupStep> steps;
   int currentStepIndex = 0;
+  bool _isProcessing = false;
 
   // Form data
   late Map<String, dynamic> formData;
@@ -92,6 +93,10 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
   void _completeSignup() async {
     if (!mounted) return;
 
+    setState(() {
+      _isProcessing = true;
+    });
+
     try {
       final roleString = widget.role == UserRole.driver ? 'DRIVER' : 'PROVIDER';
 
@@ -149,6 +154,12 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       debugPrint('[SignupFlow] Registration error: $e');
       if (!mounted) return;
       ToastService.showError(context, 'Registration failed. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     }
   }
 
@@ -253,6 +264,7 @@ class _SignupFlowScreenState extends State<SignupFlowScreen> {
       case SignupStep.password:
         return PasswordStepWidget(
           email: widget.email,
+          isLoading: _isProcessing,
           onContinue: (password) {
             _updateFormData('password', password);
             _onContinue();

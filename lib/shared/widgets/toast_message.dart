@@ -125,67 +125,70 @@ class _ToastMessageState extends State<ToastMessage>
       opacity: _fadeAnimation,
       child: SlideTransition(
         position: _slideAnimation,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: _getBackgroundColor(),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: _getBorderColor(), width: 2),
-          ),
-          child: Row(
-            children: [
-              // Icon in circle
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: _getCircleColor(),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Icon(_getIcon(), color: Colors.white, size: 24),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Message
-              Expanded(
-                child: Text(
-                  widget.message,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Close button
-              GestureDetector(
-                onTap: () {
-                  _controller.reverse().then((_) {
-                    if (mounted) {
-                      widget.onClose?.call();
-                    }
-                  });
-                },
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: _getBackgroundColor(),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _getBorderColor(), width: 2),
+            ),
+            child: Row(
+              children: [
+                // Icon in circle
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: _getCircleColor(),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.close,
-                    size: 18,
-                    color: AppColors.textSecondary,
+                  child: Center(
+                    child: Icon(_getIcon(), color: Colors.white, size: 24),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                // Message
+                Expanded(
+                  child: Text(
+                    widget.message,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Close button
+                GestureDetector(
+                  onTap: () {
+                    _controller.reverse().then((_) {
+                      if (mounted) {
+                        widget.onClose?.call();
+                      }
+                    });
+                  },
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.close,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

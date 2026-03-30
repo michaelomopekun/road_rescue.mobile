@@ -6,11 +6,13 @@ import 'package:road_rescue/shared/utils/validators.dart';
 class PasswordStepWidget extends StatefulWidget {
   final String email;
   final Function(String) onContinue;
+  final bool isLoading;
 
   const PasswordStepWidget({
     super.key,
     required this.email,
     required this.onContinue,
+    this.isLoading = false,
   });
 
   @override
@@ -92,9 +94,12 @@ class _PasswordStepWidgetState extends State<PasswordStepWidget> {
         SizedBox(
           width: double.infinity,
           child: PrimaryButton(
-            label: 'Continue',
-            onPressed: _isPasswordValid ? _onContinue : null,
-            text: 'Continue',
+            label: 'Sign up',
+            onPressed: (_isPasswordValid && !widget.isLoading)
+                ? _onContinue
+                : null,
+            text: 'Sign up',
+            isLoading: widget.isLoading,
           ),
         ),
       ],

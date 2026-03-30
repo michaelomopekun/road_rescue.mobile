@@ -171,12 +171,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
         Navigator.of(context).pushReplacementNamed('/driver/wallet');
         break;
       case 2:
-        Navigator.of(context).pushReplacementNamed('/driver/map');
-        break;
-      case 3:
         Navigator.of(context).pushReplacementNamed('/driver/history');
         break;
-      case 4:
+      case 3:
         Navigator.of(context).pushReplacementNamed('/driver/profile');
         break;
     }
@@ -459,6 +456,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
       bottomNavigationBar: DashboardBottomNavBar(
         selectedIndex: _selectedNavIndex,
         onTabChanged: _handleNavigation,
+        variant: DashboardNavVariant.driverDashboard,
       ),
     );
   }

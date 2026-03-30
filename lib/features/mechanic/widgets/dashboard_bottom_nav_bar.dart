@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:road_rescue/theme/app_colors.dart';
 
-enum DashboardNavVariant { lockedDashboard, fullDashboard }
+enum DashboardNavVariant { lockedDashboard, fullDashboard, driverDashboard }
 
 class DashboardBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -16,21 +16,21 @@ class DashboardBottomNavBar extends StatelessWidget {
   });
 
   List<BottomNavigationBarItem> _getItems() {
-    final allItems = [
-      BottomNavigationBarItem(icon: const Icon(Icons.home), label: 'Home'),
-      BottomNavigationBarItem(
-        icon: const Icon(Icons.account_balance_wallet),
+    final allItems = <BottomNavigationBarItem>[
+      const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.account_balance_wallet),
         label: 'Wallet',
       ),
-      BottomNavigationBarItem(icon: const Icon(Icons.map), label: 'Map'),
-      BottomNavigationBarItem(
-        icon: const Icon(Icons.history),
+      if (variant != DashboardNavVariant.driverDashboard)
+        const BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.history),
         label: 'History',
       ),
-      BottomNavigationBarItem(icon: const Icon(Icons.person), label: 'Profile'),
+      const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
     ];
 
-    // For full dashboard, show all tabs
     return allItems;
   }
 

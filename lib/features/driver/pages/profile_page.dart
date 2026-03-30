@@ -14,7 +14,7 @@ class DriverProfilePage extends StatefulWidget {
 }
 
 class _DriverProfilePageState extends State<DriverProfilePage> {
-  int _selectedNavIndex = 4;
+  int _selectedNavIndex = 3;
   UserProfile? _userProfile;
   bool _isLoading = true;
 
@@ -162,12 +162,9 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
         Navigator.of(context).pushReplacementNamed('/driver/wallet');
         break;
       case 2:
-        Navigator.of(context).pushReplacementNamed('/driver/map');
-        break;
-      case 3:
         Navigator.of(context).pushReplacementNamed('/driver/history');
         break;
-      case 4:
+      case 3:
         break;
     }
   }
@@ -409,6 +406,7 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
       bottomNavigationBar: DashboardBottomNavBar(
         selectedIndex: _selectedNavIndex,
         onTabChanged: _handleNavigation,
+        variant: DashboardNavVariant.driverDashboard,
       ),
     );
   }

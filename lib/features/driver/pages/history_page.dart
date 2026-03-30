@@ -12,7 +12,7 @@ class DriverHistoryPage extends StatefulWidget {
 }
 
 class _DriverHistoryPageState extends State<DriverHistoryPage> {
-  int _selectedNavIndex = 3;
+  int _selectedNavIndex = 2;
   List<DriverHistoryRequest> _requests = [];
   bool _isLoading = true;
   int _currentPage = 1;
@@ -106,11 +106,8 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
         Navigator.of(context).pushReplacementNamed('/driver/wallet');
         break;
       case 2:
-        Navigator.of(context).pushReplacementNamed('/driver/map');
         break;
       case 3:
-        break;
-      case 4:
         Navigator.of(context).pushReplacementNamed('/driver/profile');
         break;
     }
@@ -309,6 +306,7 @@ class _DriverHistoryPageState extends State<DriverHistoryPage> {
       bottomNavigationBar: DashboardBottomNavBar(
         selectedIndex: _selectedNavIndex,
         onTabChanged: _handleNavigation,
+        variant: DashboardNavVariant.driverDashboard,
       ),
     );
   }
